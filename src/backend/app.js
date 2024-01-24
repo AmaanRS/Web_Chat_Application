@@ -3,7 +3,7 @@ const cors = require("cors")
 const cookieParser = require("cookie-parser")
 const path = require("path")
 const Routes = require("./Routes/Router")
-const connectDB = require("./DB/db")
+const { connectDB } = require("./DB/db")
 require("dotenv").config()
 
 const app = express()
@@ -24,16 +24,15 @@ app.use("/",Routes)
 
 async function startServer(){
     try{
-        //Write the database url in the env file
-        // let isDbConnected = await connectDB(process.env.MONGO_URI)
-        // if(isDbConnected){
-        //     console.log("Database is connected")
+        // Write the database url in the env file
+        await connectDB(process.env.MONGO_URI).then(()=>{
+            console.log("Database is connected")
             app.listen(process.env.PORT,()=>{
                 console.log(`Express app running on port ${process.env.PORT}`)
             })
-        // }else{
-        //     console.log("The database is not connected")
-        // }
+        }).catch((err)=>{
+            if(err) console.log(err.message)
+        })
     }catch(e){
         console.log(`This Express Server is not running because : ${e}`)
     }

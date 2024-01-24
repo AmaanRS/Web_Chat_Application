@@ -13,54 +13,76 @@ import {
   createRoutesFromElements
 } from "react-router-dom"
 
-const router = createBrowserRouter(
-  createRoutesFromElements(
-  <Route 
-  path= "/"
-  element={<HomePage/>}
-  action={
-    async({request}) => {
-      switch(request.method){
-        case "POST":{
-          //Get the submitted form data
-          let formData = await request.formData()
-          let email = formData.get("email")
-          let password = formData.get("password")
-          let username = formData.get("username")
+const ORIGIN = process.env.REACT_APP_ORIGIN
 
-          if(username){
-            //Username is not null hence the user is trying to signup
-            axios.post("/signup",{
 
-              email:email,
-              username:username,
-              password:password
+const handleLoginAndSignup = async (request)=>{
+  switch(request.method){
+    case "POST":{
+      //Get the submitted form data
+      let formData = await request.formData()
+      let email = formData.get("email")
+      let password = formData.get("password")
+      let username = formData.get("username")
 
-            }).then(()=>{
-              //Response from backend
-              return null
-            })
-          }else{
-            //Username is null and hence user is trying to login
-            axios.post("/login",{
+      if(username){
+        //Username is not null hence the user is trying to signup
+        await axios.post(`${ORIGIN}/signup`,{
 
-              email:email,
-              password:password
+          email:email,
+          username:username,
+          password:password
 
-            }).then((data)=>{
-              //Response from backend
-              console.log(data.message)
-              return null
-
-            })
+        }).then((data)=>{
+          //Response from backend
+          console.log(data.data.message)
+          return null
+        }).catch((err)=>{
+          if(err){
+            console.log(err.message)
+            //Return error for error page
+            return err
           }
-        }
+        })
+      }else{
+        //Username is null and hence user is trying to login
+        await axios.post(`${ORIGIN}/login`,{
+
+          email:email,
+          password:password
+
+        }).then((data)=>{
+          //Response from backend
+          console.log(data.data.message)
+          return null
+
+        }).catch((err)=>{
+          if(err){
+            console.log(err.message)
+            //Return error for error page
+            return err 
+          }
+        })
       }
     }
   }
-  errorElement={<ErrorPage/>}
-  />
-));
+}
+
+
+
+
+const router = createBrowserRouter(
+  createRoutesFromElements(
+    <Route
+      path="/"
+      element={<HomePage />}
+      action={async ({ request }) => await handleLoginAndSignup(request)}
+      errorElement={<ErrorPage />}
+    />
+  )
+);
+
+
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
