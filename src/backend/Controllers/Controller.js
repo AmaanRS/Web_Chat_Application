@@ -16,7 +16,7 @@ const login = async (req,res)=>{
 
             //If the database does not returns the data of the user
             if(!doesEmailExist){
-                return res.json({message:"Either email or password entered is wrong"})
+                return res.json({message:"Either email or password entered is wrong",success:false})
             }
 
             //Check the user input password against the password from the database
@@ -24,7 +24,7 @@ const login = async (req,res)=>{
 
             //If the passwords do not match
             if(!matchPassword){
-                return res.json({message:"Either email or password entered is wrong"})
+                return res.json({message:"Either email or password entered is wrong",success:false})
             }
 
             //Create a jwt token
@@ -34,11 +34,11 @@ const login = async (req,res)=>{
             res.cookie("token",token,{maxAge:60*60*60,httpOnly:true})
 
             //Send the message to the frontend that the user is now logged in
-            return res.json({message:"You have been logged in successfully"})
+            return res.json({message:"You have been logged in successfully",success:true})
         }
         //If either email or password does not exist
         else{
-            return res.json({message:"Either email or password is missing"})
+            return res.json({message:"Either email or password is missing",success:false})
         }
     }catch(e){
         console.log("There is some error in login controller")
@@ -47,7 +47,7 @@ const login = async (req,res)=>{
         console.log(e.message)
 
         //Send the message to the frontend that the user is not logged in
-        return res.json({message:"There is some problem in logging in"})
+        return res.json({message:"There is some problem in logging in",success:false})
     }
 }
 
@@ -62,19 +62,23 @@ const signup = async (req,res)=>{
             const isUserCreated = await userModel.create({username:username,email:email,password:hashedPassword})
 
             if( !isUserCreated ){
-                return res.json({message:"User not created"})
+                return res.json({message:"User not created",success:false})
             }
-            return res.json({message:"Your account has been created now you can login"})
+            return res.json({message:"Your account has been created now you can login",success:true})
 
         }else{
-            return res.json({message:"Enter both email and password"})
+            return res.json({message:"Enter both email and password",success:false})
         }
     } catch (e) {
         //Logging the error
         console.log(e.message)
+        
+        if(e.code == 11000){
+            return res.json({message:"This email is already registered",success:false})
+        }
 
         //Send the message to the frontend that the user is not logged in
-        return res.json({message:"There is some problem in signning up"})
+        return res.json({message:"There is some problem in signning up",success:false})
     }
     
 }

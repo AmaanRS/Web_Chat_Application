@@ -10,7 +10,8 @@ import {
   RouterProvider,
   Route,
   Link,
-  createRoutesFromElements
+  createRoutesFromElements,
+  redirect
 } from "react-router-dom"
 
 const ORIGIN = process.env.REACT_APP_ORIGIN
@@ -24,6 +25,7 @@ const handleLoginAndSignup = async (request)=>{
       let email = formData.get("email")
       let password = formData.get("password")
       let username = formData.get("username")
+      var success
 
       if(username){
         //Username is not null hence the user is trying to signup
@@ -36,10 +38,13 @@ const handleLoginAndSignup = async (request)=>{
         }).then((data)=>{
           //Response from backend
           console.log(data.data.message)
-          return null
+          success = data.data.success
+
         }).catch((err)=>{
           if(err){
             console.log(err.message)
+            success = false
+
             //Return error for error page
             return err
           }
@@ -54,16 +59,23 @@ const handleLoginAndSignup = async (request)=>{
         }).then((data)=>{
           //Response from backend
           console.log(data.data.message)
-          return null
+          success = data.data.success
+          
 
         }).catch((err)=>{
           if(err){
             console.log(err.message)
+            success = false
+
             //Return error for error page
             return err 
           }
         })
       }
+      //This value can be used in the HomePage using useActionData()
+      // return "Hii"
+      
+      return success
     }
   }
 }
