@@ -5,6 +5,7 @@ import './index.css';
 import HomePage from "./components/HomePage"
 import ErrorPage from "./components/ErrorPage"
 import axios from "axios"
+import MainPage from './components/MainPage';
 import {
   createBrowserRouter,
   RouterProvider,
@@ -85,12 +86,20 @@ const handleLoginAndSignup = async (request)=>{
 
 const router = createBrowserRouter(
   createRoutesFromElements(
+    <>
     <Route
       path="/"
       element={<HomePage />}
       action={async ({ request }) => await handleLoginAndSignup(request)}
       errorElement={<ErrorPage />}
+    >
+    </Route>
+    <Route
+    path='/main'
+    element={<MainPage />}
+    errorElement={<ErrorPage />}
     />
+    </>
   )
 );
 
