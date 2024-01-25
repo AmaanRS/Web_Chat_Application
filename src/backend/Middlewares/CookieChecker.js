@@ -1,23 +1,29 @@
 const jwt = require("jsonwebtoken")
 
 const cookieChecker = async( req, res, next )=>{
-
     //Get token from cookies
     const token = req.cookies["token"]
 
-    //If token does not exist
+    //If token does not exist send the control to the next call and send the message
     if(!token){
-        return res.json({message:"User not authenticated"})
+        req.middlewareRes = {message:"User not authenticated",success:false}
+
+        next()
     }
 
-    //Check the token with secret key
-    const isUserCorrect = jwt.verify(token,process.env.JWT_SECRET)
+    try {
+        //Check the token with secret key
+        const decodedToken = jwt.verify(token,process.env.JWT_SECRET)
 
-    //If the token is not correct
-    if(!isUserCorrect){
-        return res.json({message:"User not authenticated"})
+        req.middlewareRes = {message:"The user is authenticated",success:true}
+
+        next()
+
+    } catch (error) {
+        req.middlewareRes = {message:"User not authenticated",success:false}
+        
+        next()
     }
-    next()
 }
 
 module.exports = { cookieChecker }

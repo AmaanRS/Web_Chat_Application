@@ -83,6 +83,15 @@ const signup = async (req,res)=>{
     
 }
 
+const mainPage = async (req,res)=>{
+    //The user is not authenticated
+    if(!req.middlewareRes.success){
+        return res.json({message:req.middlewareRes.message,success:req.middlewareRes.success})
+    }
+    //The user is authenticated and you can do the operations
+
+}
 
 
-module.exports = { login,signup }
+
+module.exports = { login,signup,mainPage }
