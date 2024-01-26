@@ -1,11 +1,9 @@
-import React from 'react'
-import { Form, useActionData } from 'react-router-dom'
+import React, { useEffect } from 'react'
+import { Form, redirect, useActionData } from 'react-router-dom'
 export default function HomePage() {
-
+  
 // The data here comes from the return value of action from the react router 
 // const actionn = useActionData()
-// console.log(actionn)
-
 
   return (
     <>
