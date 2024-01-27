@@ -1,12 +1,13 @@
 import React, { useEffect } from 'react'
-import { Form, redirect, useActionData } from 'react-router-dom'
+import { Form, Navigate, redirect, useActionData } from 'react-router-dom'
 export default function HomePage() {
   
 // The data here comes from the return value of action from the react router 
-// const actionn = useActionData()
+const actionn = useActionData()
 
   return (
     <>
+    { !actionn &&
     <div>
       
       <div>
@@ -47,8 +48,10 @@ export default function HomePage() {
         <button type='submit'>SignUp</button>
         </Form>
       </div>
-
-    </div>
+    </div> }
+    {
+      actionn && <Navigate replace to={"/main"} />
+    }
     </>
   )
 }

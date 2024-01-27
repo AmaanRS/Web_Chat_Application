@@ -13,6 +13,8 @@ import {
   createRoutesFromElements,
 } from "react-router-dom"
 
+//Tried using React router v6 but can't do it so going back to v5 and there is very less help online in this date
+
 const router = createBrowserRouter(
   createRoutesFromElements(
     <>
