@@ -7,10 +7,9 @@ export const HandleLoginAndSignup = async (request)=>{
     switch(request.method){
       case "POST":{
         //Get the submitted form data
-        let formData = await request.formData()
-        let email = formData.get("email")
-        let password = formData.get("password")
-        let username = formData.get("username")
+        let email = request.email
+        let password = request.password
+        let username = request.username
         var success
   
         if(username){

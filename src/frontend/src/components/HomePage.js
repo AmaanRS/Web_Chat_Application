@@ -1,17 +1,43 @@
-import React, { useEffect } from 'react'
-import { Form, Navigate, redirect, useActionData } from 'react-router-dom'
+import React, { useState,useEffect } from 'react'
+import { Navigate, useNavigate } from 'react-router-dom'
+import { HandleLoginAndSignup } from './HandleLoginAndSignup';
 export default function HomePage() {
-  
-// The data here comes from the return value of action from the react router 
-const actionn = useActionData()
+  const ORIGIN = process.env.REACT_APP_ORIGIN
+  const [success,setSuccess] = useState(false)
 
+  const  handleSubmitAndLogin = async (event) =>{
+    event.preventDefault()
+
+    const formData = new FormData(event.target);
+    const email = formData.get('email');
+    const password = formData.get('password');
+    const username = formData.get('username');
+
+    // Create request object
+    const request = {
+      email: email,
+      password: password,
+      username: username,
+      method:"POST"
+    };
+
+    const isSuccess = await HandleLoginAndSignup(request)
+    setSuccess(isSuccess)
+  }
+  const navigate = useNavigate()
+  useEffect(() => {
+    // Check if success is true and navigate
+    if (success) {
+      navigate('/main', { replace: true });
+    }
+  }, [success]);
+  
   return (
     <>
-    { !actionn &&
+    {!success && (
     <div>
-      
       <div>
-        <Form method='post'>
+        <form method='post' onSubmit={handleSubmitAndLogin}>
         <label>Login</label>
         <br></br>
         <br></br>
@@ -23,11 +49,11 @@ const actionn = useActionData()
         <br></br>
         <input type='password' name='password' required></input>
         <button type='submit'>Login</button>
-        </Form>
+        </form>
       </div>
 
       <div>
-        <Form method='post'>
+        <form method='post' action={ORIGIN + "/submit"}>
         <br></br>
         <br></br>
         <br></br>
@@ -46,12 +72,9 @@ const actionn = useActionData()
         <br></br>
         <input type='password' name='password' required></input>
         <button type='submit'>SignUp</button>
-        </Form>
+        </form>
       </div>
-    </div> }
-    {
-      actionn && <Navigate replace to={"/main"} />
-    }
+    </div>)}
     </>
   )
 }
