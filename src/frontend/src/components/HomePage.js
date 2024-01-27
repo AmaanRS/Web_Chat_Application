@@ -53,7 +53,7 @@ export default function HomePage() {
       </div>
 
       <div>
-        <form method='post' action={ORIGIN + "/submit"}>
+        <form method='post' onSubmit={handleSubmitAndLogin}>
         <br></br>
         <br></br>
         <br></br>

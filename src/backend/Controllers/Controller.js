@@ -31,7 +31,7 @@ const login = async (req,res)=>{
             let token = jwt.sign({email:email},process.env.JWT_SECRET)
 
             //Create a cookie using a token and add it to the response object
-            res.cookie("token",token,{maxAge:60*60*60,httpOnly:true})
+            res.cookie("token",token,{maxAge:60*60*60,httpOnly:true,sameSite: 'None'})
 
             //Send the message to the frontend that the user is now logged in
             return res.json({message:"You have been logged in successfully",success:true})

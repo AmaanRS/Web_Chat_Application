@@ -41,10 +41,13 @@ export const HandleLoginAndSignup = async (request)=>{
             email:email,
             password:password
   
+          },{
+            withCredentials:true
           }).then((data)=>{
             //Response from backend
             console.log(data.data.message)
             success = data.data.success
+            console.log(data.headers['set-cookie'])
   
           }).catch((err)=>{
             if(err){

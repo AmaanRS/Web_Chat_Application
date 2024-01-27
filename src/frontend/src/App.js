@@ -2,6 +2,7 @@ import { Route,Routes } from 'react-router-dom';
 import './App.css';
 import HomePage from './components/HomePage';
 import MainPage from './components/MainPage';
+import { AuthenticateUser } from './components/AuthenticateUser';
 
 
 function App() {
@@ -9,8 +10,13 @@ function App() {
     <>
     <Routes>
       <Route exact path='/' element={<HomePage />}>
-        <Route exact path='/main' element={<MainPage />} />
       </Route>
+        <Route exact path='/main' element={
+          <AuthenticateUser>
+            <MainPage />
+          </AuthenticateUser>
+        } 
+        />
     </Routes>
     </>
   );
