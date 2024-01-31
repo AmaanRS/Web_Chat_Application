@@ -1,8 +1,7 @@
 import React, { useState,useEffect } from 'react'
-import { Navigate, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { HandleLoginAndSignup } from './HandleLoginAndSignup';
 export default function HomePage() {
-  const ORIGIN = process.env.REACT_APP_ORIGIN
   const [success,setSuccess] = useState(false)
 
   const  handleSubmitAndLogin = async (event) =>{
