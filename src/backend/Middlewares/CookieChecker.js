@@ -1,8 +1,8 @@
 const jwt = require("jsonwebtoken")
 
 const cookieChecker = async( req, res, next )=>{
-    //Get token from cookies
-    const token = req.cookies["token"]
+    //Get token from the request's header
+    const token = req.headers.authorization?.split("Bearer ")[1]
 
     //If token does not exist send the control to the next call and send the message
     if(!token){

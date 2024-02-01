@@ -1,7 +1,4 @@
 import axios from 'axios';
-
-//JWT Not working try alternatives
-// import jwt from 'jsonwebtoken';
 import Cookies from 'js-cookie';
 
 //When sending requests to server add these HEADERS
@@ -17,7 +14,6 @@ import Cookies from 'js-cookie';
 
 export const HandleLoginAndSignup = async (request)=>{
     const ORIGIN = process.env.REACT_APP_ORIGIN
-    const JWT_SECRET = process.env.REACT_APP_JWT_SECRET
 
     switch(request.method){
       case "POST":{
@@ -58,11 +54,13 @@ export const HandleLoginAndSignup = async (request)=>{
           }).then((data)=>{
             //Response from backend
             if(data.data.success){
-              if(data.data.email){
-                const token = jwt.sign(data.data.email,JWT_SECRET)
-                Cookies.set('token', token, { expires: 1, path: '/' });
+              if(data.data.token){
+                // console.log(data.data.token)
+                Cookies.set('token', data.data.token, { expires: 1, path: '/'});
               }
             }
+            console.log(data.data.message)
+            success = data.data.success
   
           }).catch((err)=>{
             if(err){

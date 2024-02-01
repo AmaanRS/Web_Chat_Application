@@ -27,10 +27,10 @@ const login = async (req,res)=>{
                 return res.json({message:"Either email or password entered is wrong",success:false})
             }
 
-            //Commenting jwt token and res.cookie because i could'nt set cookie from the backend so i will set the cookie from frontend
+            // I will be creating the jwt token in the backend at set the token using frontend
 
             //Create a jwt token
-            // let token = jwt.sign({email:email},process.env.JWT_SECRET)
+            let token = jwt.sign({email:email},process.env.JWT_SECRET)
 
             //Create a cookie using a token and add it to the response object
             // res.cookie("token",token,{maxAge:60*60*60,httpOnly:true,sameSite: 'None'})
@@ -38,7 +38,7 @@ const login = async (req,res)=>{
 
 
             //Send the message to the frontend that the user is now logged in
-            return res.json({message:"You have been logged in successfully",success:true,email:email})
+            return res.json({message:"You have been logged in successfully",success:true,token:token})
         }
         //If either email or password does not exist
         else{
