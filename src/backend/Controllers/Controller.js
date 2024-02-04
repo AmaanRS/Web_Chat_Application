@@ -93,7 +93,7 @@ const mainPage = async (req,res)=>{
         return res.json({message:req.middlewareRes.message,success:req.middlewareRes.success})
     }
     //The user is authenticated and you can do the operations
-    return res.json({message:"aaahjdjfjfsjknb",success:true})
+    return res.json({message:"The user is authenticated",success:true})
 }
 
 module.exports = { login,signup,mainPage }

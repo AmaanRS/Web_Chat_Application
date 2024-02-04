@@ -1,24 +1,33 @@
-import { Route,Routes } from 'react-router-dom';
-import './App.css';
-import HomePage from './components/HomePage';
-import MainPage from './components/MainPage';
-import { AuthenticateUser } from './components/AuthenticateUser';
-
+import { RouterProvider, createBrowserRouter } from 'react-router-dom';
+import HomePage, { homeAction } from './pages/HomePage';
+import ErrorPage from './pages/ErrorPage'
+import MainPage from './pages/MainPage';
 
 function App() {
+
+  const router = createBrowserRouter([
+    {
+      path:"/",
+      // element:<HomePage />,
+      errorElement:<ErrorPage />,
+      action: homeAction,
+      children:[
+        {
+          index:true,
+          element:<HomePage/>,
+          action: homeAction
+        },
+        {
+          path:"main",
+          element:<MainPage />,
+
+        }
+      ]
+    }
+  ])
+
   return (
-    <>
-    <Routes>
-      <Route exact path='/' element={<HomePage />}>
-      </Route>
-        <Route exact path='/main' element={
-          <AuthenticateUser>
-            <MainPage />
-          </AuthenticateUser>
-        } 
-        />////
-    </Routes>
-    </>
+    <RouterProvider router={router}/>
   );
 }
 
