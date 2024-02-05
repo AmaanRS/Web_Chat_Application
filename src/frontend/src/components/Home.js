@@ -1,20 +1,11 @@
 import { Form, useNavigate } from 'react-router-dom'
 import  { isLogin }  from '../utils/Auth';
-import { useEffect } from 'react';
+import { useEffect,useState } from 'react';
 
 export default function Home() {
-  const navigate = useNavigate()
-  const login = isLogin()
-  
-  useEffect(()=>{
-    if(login){
-      return navigate("/main",{replace:true})
-    }
-  },[login])
 
   return (
   <>
-  { !login &&
     <div>
       <div>
         <Form method='post'>
@@ -55,7 +46,6 @@ export default function Home() {
         </Form>
       </div>
     </div>
-  }
   </>
   )
 }

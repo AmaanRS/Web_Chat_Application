@@ -81,3 +81,8 @@ var [chatAreaContent,setChatAreaContent] = useState("<b>Lorem ipsum dolor sit am
     </>
   )
 }
+
+
+export const mainLoader = ({request}) =>{
+  return null
+}

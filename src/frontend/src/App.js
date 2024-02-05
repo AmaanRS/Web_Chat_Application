@@ -2,6 +2,8 @@ import { RouterProvider, createBrowserRouter } from 'react-router-dom';
 import HomePage, { homeAction } from './pages/HomePage';
 import ErrorPage from './pages/ErrorPage'
 import MainPage from './pages/MainPage';
+import {mainLoader} from './pages/MainPage'
+import {homeLoader} from './pages/HomePage'
 
 function App() {
 
@@ -15,12 +17,13 @@ function App() {
         {
           index:true,
           element:<HomePage/>,
-          action: homeAction
+          action: homeAction,
+          loader:homeLoader
         },
         {
           path:"main",
           element:<MainPage />,
-
+          loader:mainLoader
         }
       ]
     }
