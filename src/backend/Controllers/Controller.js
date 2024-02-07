@@ -96,4 +96,38 @@ const mainPage = async (req,res)=>{
     return res.json({message:"The user is authenticated",success:true})
 }
 
-module.exports = { login,signup,mainPage }
+const getUserData =async (req,res)=>{
+    try {
+
+        //User is not authenticated
+        if(!req.middlewareRes.success){
+            return res.json({message:req.middlewareRes.message,success:req.middlewareRes.success})
+        }
+
+        //Get the payload from the token
+        const { decodedToken } = req.middlewareRes
+
+        //If the token does not exist or the payload in the token does not exist
+        if(!decodedToken || !decodedToken.email){
+            return res.json({message:"Cannot get users data",success:false})
+        }
+
+        //Get the user from the database
+        const userData = await userModel.findOne({email:decodedToken.email})
+
+        //If the user does not exist
+        if(!userData){
+            return res.json({message:"Cannot get users data",success:false})
+        }
+
+        return res.json({message:"User's data fetched successfully",success:true,email:userData.email,friends:userData.friends})
+        
+    } catch (error) {
+        
+        console.log(error)
+        return res.json({message:"Cannot get users data",success:false})
+    }
+
+}
+
+module.exports = { login,signup,mainPage,getUserData }

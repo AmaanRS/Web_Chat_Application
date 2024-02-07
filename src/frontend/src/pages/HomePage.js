@@ -7,19 +7,19 @@ import { useEffect } from 'react';
 
 const HomePage = () => {
   const action = useActionData()
-  const login = useLoaderData()
+  const { success } = useLoaderData()
   const navigate = useNavigate()
 
   //If user is logged in then redirect the user to main page
   useEffect(()=>{
-    if(login){
+    if(success){
       return navigate("/main",{replace:true})
     }
-  },[login])
+  },[success])
 
   return (
     <>
-    { !login && <Home />}
+    { !success && <Home />}
     {action && action.message && <p>{action.message}</p>}
     </>
   )
@@ -91,8 +91,12 @@ export const homeAction = async ({request,params}) =>{
 }
 
 export const homeLoader = async ({request})=>{
-  const login = await isLogin()
-  return login
+  try {
+    const login = await isLogin()
+    return {success:login}
+  } catch (error) {
+    return {success:false}
+  }
 }
 
 export default HomePage

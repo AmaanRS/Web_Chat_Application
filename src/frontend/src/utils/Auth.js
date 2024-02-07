@@ -29,6 +29,22 @@ export const isLogin = async () =>{
         
         return true;
     } catch (error) {
+
+        console.log(error)
+        return false
+    }
+}
+
+export const getToken = ()=>{
+    try {
+        const token = Cookies.get("token")
+
+        //If the token does not exist
+        if(!token){
+            return false
+        }
+        return token
+    }catch(error){
         console.log(error)
         return false
     }

@@ -7,7 +7,7 @@ import AccountCircle from '@mui/icons-material/AccountCircle';
 import MenuItem from '@mui/material/MenuItem';
 import Menu from '@mui/material/Menu';
 
-export default function MenuAppBar() {
+export default function MenuAppBar(props) {
   const [anchorEl, setAnchorEl] = React.useState(null);
 
   const handleMenu = (event) => {
@@ -22,7 +22,6 @@ export default function MenuAppBar() {
     <Box sx={{ flexGrow: 1,border:"0.5px solid grey"}}>
       <AppBar position="static">
         <Toolbar sx={{flexDirection:'row-reverse'}}>
-            <div>
               <IconButton
                 size="large"
                 aria-label="account of current user"
@@ -31,6 +30,7 @@ export default function MenuAppBar() {
                 onClick={handleMenu}
                 color="inherit"
               >
+              <h5><b>{props.email}</b></h5>
                 <AccountCircle />
               </IconButton>
               <Menu
@@ -50,7 +50,6 @@ export default function MenuAppBar() {
               >
                 <MenuItem onClick={handleClose}>Logout</MenuItem>
               </Menu>
-            </div>
         </Toolbar>
       </AppBar>
     </Box>

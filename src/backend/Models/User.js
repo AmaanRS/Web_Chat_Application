@@ -15,8 +15,14 @@ const userModel = new mongoose.Schema({
         required:true,
         type:String,
         unique:true
-    }
-    
+    },
+    //Newly added testing this field is remaining
+    friends: [
+        {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "userModel",
+        }
+      ]
 },{
     timestamps:true
 })
