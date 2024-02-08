@@ -130,4 +130,34 @@ const getUserData =async (req,res)=>{
 
 }
 
-module.exports = { login,signup,mainPage,getUserData }
+const getAllUsersEmail = async (req,res) =>{
+    try {
+        
+        //User is not authenticated
+        if(!req.middlewareRes.success){
+            return res.json({message:req.middlewareRes.message,success:req.middlewareRes.success})
+        }
+
+        const allUserEmails = await userModel.find({}, { email: 1, _id: 0 });
+
+        if(!allUserEmails){
+            return res.json({message:"Could not fetch all Users",success:false})
+        }
+
+        let listOfEmails = []
+
+        allUserEmails.map((emailObj)=>{
+            listOfEmails.push(emailObj.email)
+        })
+
+        return res.json({message:"Fetched all emails successfully",success:true,listOfEmails:listOfEmails})
+
+    } catch (error) {
+
+        console.log(error)
+        return res.json({message:"Cannot get  all users data",success:false})
+    }
+
+}
+
+module.exports = { login,signup,mainPage,getUserData,getAllUsersEmail }

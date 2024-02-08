@@ -6,9 +6,11 @@ import IconButton from '@mui/material/IconButton';
 import AccountCircle from '@mui/icons-material/AccountCircle';
 import MenuItem from '@mui/material/MenuItem';
 import Menu from '@mui/material/Menu';
+import { useNavigate } from 'react-router-dom';
 
 export default function MenuAppBar(props) {
   const [anchorEl, setAnchorEl] = React.useState(null);
+  const navigate = useNavigate()
 
   const handleMenu = (event) => {
     setAnchorEl(event.currentTarget);
@@ -17,6 +19,10 @@ export default function MenuAppBar(props) {
   const handleClose = () => {
     setAnchorEl(null);
   };
+
+  const addFriend = () =>{
+    navigate("/addFriend")
+  }
 
   return (
     <Box sx={{ flexGrow: 1,border:"0.5px solid grey"}}>
@@ -49,6 +55,7 @@ export default function MenuAppBar(props) {
                 onClose={handleClose}
               >
                 <MenuItem onClick={handleClose}>Logout</MenuItem>
+                <MenuItem onClick={addFriend}>Add Friend</MenuItem>
               </Menu>
         </Toolbar>
       </AppBar>

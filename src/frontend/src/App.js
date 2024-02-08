@@ -2,8 +2,10 @@ import { RouterProvider, createBrowserRouter } from 'react-router-dom';
 import HomePage, { homeAction } from './pages/HomePage';
 import ErrorPage from './pages/ErrorPage'
 import MainPage from './pages/MainPage';
+import AddFriendPage from './pages/AddFriendPage'
 import {mainLoader} from './pages/MainPage'
 import {homeLoader} from './pages/HomePage'
+import {addFriendLoader} from './pages/AddFriendPage'
 
 function App() {
 
@@ -24,6 +26,11 @@ function App() {
           path:"main",
           element:<MainPage />,
           loader:mainLoader
+        },
+        {
+          path:"addFriend",
+          element:<AddFriendPage/>,
+          loader:addFriendLoader
         }
       ]
     }
