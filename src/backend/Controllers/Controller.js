@@ -138,6 +138,7 @@ const getAllUsersEmail = async (req,res) =>{
             return res.json({message:req.middlewareRes.message,success:req.middlewareRes.success})
         }
 
+        //Return an array of email objects
         const allUserEmails = await userModel.find({}, { email: 1, _id: 0 });
 
         if(!allUserEmails){
@@ -146,6 +147,7 @@ const getAllUsersEmail = async (req,res) =>{
 
         let listOfEmails = []
 
+        //Gets the array of emails
         allUserEmails.map((emailObj)=>{
             listOfEmails.push(emailObj.email)
         })
@@ -160,4 +162,61 @@ const getAllUsersEmail = async (req,res) =>{
 
 }
 
-module.exports = { login,signup,mainPage,getUserData,getAllUsersEmail }
+const addFriendBothWays = async (req,res)=>{
+    try {
+        //User is not authenticated
+        if(!req.middlewareRes.success){
+            return res.json({message:req.middlewareRes.message,success:req.middlewareRes.success})
+        }
+
+        const { friendEmail } = req.body
+        const { decodedToken } = req.middlewareRes
+
+        //If the token does not exist or the payload in the token does not exist
+        if(!decodedToken || !decodedToken.email){
+            return res.json({message:"Cannot get users data",success:false})
+        }
+
+        //Session management is left it is required to make the transaction atomic
+        
+        // const session = await userModel.startSession()
+        // session.startTransaction()
+
+        const User1 = await userModel.findOne({email:decodedToken.email})
+        const User2 = await userModel.findOne({email:friendEmail})
+
+        if(!User1 || !User2){
+            return res.json({message:"Could not add Friend",success:false})
+        }
+
+        //Add User2 to friends array field of User1
+        const updatedUser1 = await userModel.findByIdAndUpdate(User1._id,
+        { $push :
+            { 
+                friends : User2._id 
+            } 
+        },{new:true})
+
+        //Add User1 to friends array field of User2
+        const updatedUser2 = await userModel.findByIdAndUpdate(User2._id,
+        { $push :
+            { 
+                friends : User1._id 
+            } 
+        },{new:true})
+
+        // await session.commitTransaction();
+        // session.endSession();
+
+        return res.json({
+            message: "Friend added successfully",
+            success: true,
+        });
+
+    } catch (error) {
+        console.log(error)
+        return res.json({message:"Could not add as friends"})
+    }
+}
+
+module.exports = { login,signup,mainPage,getUserData,getAllUsersEmail,addFriendBothWays }

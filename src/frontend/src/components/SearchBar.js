@@ -3,14 +3,14 @@ import { styled, alpha } from '@mui/material/styles';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
 import Toolbar from '@mui/material/Toolbar';
-import IconButton from '@mui/material/IconButton';
-import Typography from '@mui/material/Typography';
 import InputBase from '@mui/material/InputBase';
 import SearchIcon from '@mui/icons-material/Search';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import ListItemText from '@mui/material/ListItemText';
 import { getAllUsersEmail } from '../utils/DataFetch';
+import { ListItemButton } from '@mui/material';
+import {addFriendBothWays} from '../utils/AddFriendBothWays'
 
 const Search = styled('div')(({ theme }) => ({
     position: 'relative',
@@ -51,6 +51,17 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
     }
 }));
 
+const addedFriend = async (friendEmail) =>{
+    try {
+        const isAdded = await addFriendBothWays(friendEmail)
+        console.log(isAdded.message)
+    } catch (error) {
+        console.log(error)
+        return {message:"The friend could not be added",success:false}
+    }
+    
+}
+
 const PrimarySearchAppBar = () => {
     const [allEmails,setAllEmails] = useState([])
     const [filteredResults,setFilteredResults] = useState([])
@@ -58,15 +69,19 @@ const PrimarySearchAppBar = () => {
 
 
     useEffect(()=>{
-        if(allEmails.length != 0){
+        //If the array is not empty and the search term is not empty
+        if(allEmails.length != 0 && searchTerm != ""){
             let updatedFilteredResults = []
             
+            //Push all the emails to the array
             for(let i = 0;i<allEmails.length;i++){
                 if(allEmails[i].includes(searchTerm)){
                     updatedFilteredResults.push(allEmails[i])
                 }
             }
             setFilteredResults(updatedFilteredResults);
+        }else{
+            setFilteredResults([]);
         }
     },[allEmails,searchTerm])
 
@@ -81,6 +96,7 @@ const PrimarySearchAppBar = () => {
     };
 
     const handleSearchKeyDown = (e) => {
+        //On press of Enter key
         if (e.key === 'Enter') {
             searchEmail(e);
         }
@@ -92,7 +108,7 @@ const PrimarySearchAppBar = () => {
                 <Toolbar sx={{ width: '80%' }}>
                     <Search>
                         <SearchIconWrapper>
-                            <SearchIcon />
+                        <SearchIcon />
                         </SearchIconWrapper>
                         <StyledInputBase
                             placeholder="Search…"
@@ -103,23 +119,16 @@ const PrimarySearchAppBar = () => {
                 </Toolbar>
             </AppBar>
             <List>
-
-                {/* FilteredList is printing a string and i want it to be an array so i can map over it */}
-                {/* {filteredResults.map((result, index) => (
+                {filteredResults.map((result, index) => (
                     <ListItem key={index}>
-                        <ListItemText primary={result.label} />
+                        <ListItemButton onClick={()=>addedFriend(result)}>
+                            <ListItemText primary={result}/>
+                        </ListItemButton>
                     </ListItem>
-                ))} */}
+                ))}
             </List>
         </Box>
     );
 };
-
-// Dummy data for demonstration
-const countries = [
-    { code: 'AD', label: 'Andorra' },
-    { code: 'AE', label: 'United Arab Emirates' },
-    // ... (other countries)
-];
 
 export default PrimarySearchAppBar

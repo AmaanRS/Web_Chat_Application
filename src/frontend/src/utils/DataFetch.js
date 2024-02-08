@@ -4,7 +4,7 @@ import {getToken} from './Auth'
 export const getAllUsersEmail = async () =>{
     try {
         const ORIGIN = process.env.REACT_APP_ORIGIN
-        const token = getToken()
+        const token = await getToken()
 
         if(!token){
             return {message:"User is not Authenticated ",success:false}

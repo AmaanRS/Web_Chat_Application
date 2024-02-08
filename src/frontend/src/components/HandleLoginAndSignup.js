@@ -1,17 +1,6 @@
 import axios from 'axios';
 import Cookies from 'js-cookie';
 
-//When sending requests to server add these HEADERS
-
-// import axios from 'axios';
-// import Cookies from 'js-cookie';
-
-// // Get the token from the cookie
-// const token = Cookies.get('token');
-
-// // Set the Authorization header in axios
-// axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-
 export const HandleLoginAndSignup = async (request)=>{
     const ORIGIN = process.env.REACT_APP_ORIGIN
 

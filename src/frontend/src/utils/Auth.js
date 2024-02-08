@@ -21,7 +21,7 @@ export const isLogin = async () =>{
             return false;
         }
 
-        //If response is false that means token exists but is not valid i.e it is chsnged or fake
+        //If response is false that means token exists but is not valid i.e it is changed or fake
         if(!response.data.success){
             Cookies.remove("token",{ expires: 1, path: '/'})
             return false
@@ -35,7 +35,7 @@ export const isLogin = async () =>{
     }
 }
 
-export const getToken = ()=>{
+export const getToken = async ()=>{
     try {
         const token = Cookies.get("token")
 
@@ -43,8 +43,17 @@ export const getToken = ()=>{
         if(!token){
             return false
         }
+
+        //Checks if token is not tampered with
+        const isTokenAuthentic = await isLogin()
+
+        if(!isTokenAuthentic){
+            return false
+        }
+
         return token
     }catch(error){
+
         console.log(error)
         return false
     }

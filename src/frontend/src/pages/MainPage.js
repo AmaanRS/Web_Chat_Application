@@ -26,7 +26,7 @@ export const mainLoader =async ({request})=>{
   try {
     const ORIGIN = process.env.REACT_APP_ORIGIN
     const login = await isLogin()
-    const token = getToken()
+    const token = await getToken()
 
     //If the token does not exist
     if(!token){
