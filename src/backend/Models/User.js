@@ -20,7 +20,11 @@ const userModel = new mongoose.Schema({
     friends: [
         {
           type: mongoose.Schema.Types.ObjectId,
-          ref: "userModel",
+          ref: "userModel"
+        //   validate: function(value){
+        //     console.log("validate")
+        //     console.log(this.friends)
+        //   }
         }
       ]
 },{

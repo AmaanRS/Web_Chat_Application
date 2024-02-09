@@ -1,6 +1,7 @@
 const userModel = require("../Models/User")
 const bcrypt = require("bcrypt")
 const jwt = require("jsonwebtoken")
+const mongoose = require("mongoose")
 
 
 const login = async (req,res)=>{
@@ -64,7 +65,7 @@ const signup = async (req,res)=>{
             const hashedPassword = await bcrypt.hash(password,8)
 
             const isUserCreated = await userModel.create({username:username,email:email,password:hashedPassword})
-
+            
             if( !isUserCreated ){
                 return res.json({message:"User not created",success:false})
             }
@@ -81,7 +82,7 @@ const signup = async (req,res)=>{
             return res.json({message:"This email is already registered",success:false})
         }
 
-        //Send the message to the frontend that the user is not logged in
+        //Send the message to the frontend that the user's account is not created
         return res.json({message:"There is some problem in signning up",success:false})
     }
     
@@ -163,6 +164,7 @@ const getAllUsersEmail = async (req,res) =>{
 }
 
 const addFriendBothWays = async (req,res)=>{
+    let session
     try {
         //User is not authenticated
         if(!req.middlewareRes.success){
@@ -177,10 +179,11 @@ const addFriendBothWays = async (req,res)=>{
             return res.json({message:"Cannot get users data",success:false})
         }
 
-        //Session management is left it is required to make the transaction atomic
-        
-        // const session = await userModel.startSession()
-        // session.startTransaction()
+        //Though I have written the session code I have no way to find whether it works or not
+
+        //Session management is required to make the transaction atomic
+        session = await mongoose.startSession()
+        session.startTransaction()
 
         const User1 = await userModel.findOne({email:decodedToken.email})
         const User2 = await userModel.findOne({email:friendEmail})
@@ -189,11 +192,14 @@ const addFriendBothWays = async (req,res)=>{
             return res.json({message:"Could not add Friend",success:false})
         }
 
+        //Write code to check if User1 already exists in friends array of User2 or User2 already exists in friends array of User1
+        // If YES then return already freinds with success false
+
         //Add User2 to friends array field of User1
         const updatedUser1 = await userModel.findByIdAndUpdate(User1._id,
         { $push :
             { 
-                friends : User2._id 
+                friends : User2._id
             } 
         },{new:true})
 
@@ -205,8 +211,8 @@ const addFriendBothWays = async (req,res)=>{
             } 
         },{new:true})
 
-        // await session.commitTransaction();
-        // session.endSession();
+        await session.commitTransaction();
+        session.endSession();
 
         return res.json({
             message: "Friend added successfully",
@@ -214,6 +220,9 @@ const addFriendBothWays = async (req,res)=>{
         });
 
     } catch (error) {
+        await session.abortTransaction();
+        session.endSession();
+
         console.log(error)
         return res.json({message:"Could not add as friends"})
     }

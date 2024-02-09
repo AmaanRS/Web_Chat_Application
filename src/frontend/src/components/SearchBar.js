@@ -67,6 +67,8 @@ const PrimarySearchAppBar = () => {
     const [filteredResults,setFilteredResults] = useState([])
     const [searchTerm, setSearchTerm] = useState("");
 
+    //Create a route and controller to getUserFriends
+    //Get all the friends of user and then remove them from allEmails then render the list
 
     useEffect(()=>{
         //If the array is not empty and the search term is not empty
