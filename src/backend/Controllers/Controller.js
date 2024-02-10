@@ -179,8 +179,13 @@ const addFriendBothWays = async (req,res)=>{
             return res.json({message:"Cannot get users data",success:false})
         }
 
-        //Though I have written the session code I have no way to find whether it works or not
+        //Cannot make friend of yourself
+        if(friendEmail === decodedToken.email){
+            console.log("Inside")
+            return res.json({ message: "Cannot become friends with yourself", success: false });
+        }
 
+        //Though I have written the session code I have no way to find whether it works or not
         //Session management is required to make the transaction atomic
         session = await mongoose.startSession()
         session.startTransaction()
@@ -192,8 +197,22 @@ const addFriendBothWays = async (req,res)=>{
             return res.json({message:"Could not add Friend",success:false})
         }
 
-        //Write code to check if User1 already exists in friends array of User2 or User2 already exists in friends array of User1
-        // If YES then return already freinds with success false
+        //Get the array of friends of User1
+        let friends1 = (await User1.populate("friends","email")).friends
+
+        //If User1 is already a friend of User2 return false
+        let isAlreadyFriends = false
+
+        for (const obj of friends1) {
+            if (obj.email === friendEmail) {
+                isAlreadyFriends = true;
+                break;
+            }
+        }
+        
+        if(isAlreadyFriends){
+            return res.json({message:"You are already Friends with the user",success:false})
+        }
 
         //Add User2 to friends array field of User1
         const updatedUser1 = await userModel.findByIdAndUpdate(User1._id,
@@ -224,7 +243,7 @@ const addFriendBothWays = async (req,res)=>{
         session.endSession();
 
         console.log(error)
-        return res.json({message:"Could not add as friends"})
+        return res.json({message:"Could not add as friends",success:false})
     }
 }
 
