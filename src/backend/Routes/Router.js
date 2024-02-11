@@ -1,4 +1,10 @@
-const { login,signup,mainPage,getUserData,getAllUsersEmail,addFriendBothWays} = require("../Controllers/Controller")
+const { login,
+    signup,
+    mainPage,
+    getUserData,
+    getAllUsersEmail,
+    addFriendBothWays,
+} = require("../Controllers/Controller")
 const express = require("express")
 const { cookieChecker } = require("../Middlewares/CookieChecker")
 const Router = express.Router()

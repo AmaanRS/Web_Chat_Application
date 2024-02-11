@@ -22,8 +22,6 @@ export default function Main() {
   //Populate this using the content from database
   var [chatAreaContent,setChatAreaContent] = useState(friends[0])
 
-  console.log(friends)
-
   var [indexx,setIndexx] = useState("Emptyyyyy")
 
   function addDataToChatArea(chatAreaContent){

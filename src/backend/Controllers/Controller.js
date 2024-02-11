@@ -172,6 +172,7 @@ const addFriendBothWays = async (req,res)=>{
         }
 
         const { friendEmail } = req.body
+        //Email id of user
         const { decodedToken } = req.middlewareRes
 
         //If the token does not exist or the payload in the token does not exist

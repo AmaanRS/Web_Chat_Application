@@ -18,8 +18,12 @@ import axios from 'axios'
             headers:{"Authorization":`Bearer ${token}`}
         })
         
-        if(!response || !response.data.success){
+        if(!response){
             return {message:"Could not add as Friend",success:false}
+        }
+
+        if(!response.data.success){
+            return {message: response.data.message,success:false}
         }
 
         return {message:"Added as a Friend",success:true}

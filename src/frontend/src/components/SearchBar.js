@@ -11,6 +11,7 @@ import ListItemText from '@mui/material/ListItemText';
 import { getAllUsersEmail } from '../utils/DataFetch';
 import { ListItemButton } from '@mui/material';
 import {addFriendBothWays} from '../utils/AddFriendBothWays'
+import { useNavigate } from 'react-router-dom';
 
 const Search = styled('div')(({ theme }) => ({
     position: 'relative',
@@ -51,25 +52,58 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
     }
 }));
 
-const addedFriend = async (friendEmail) =>{
-    try {
-        const isAdded = await addFriendBothWays(friendEmail)
-        console.log(isAdded.message)
-    } catch (error) {
-        console.log(error)
-        return {message:"The friend could not be added",success:false}
-    }
-    
-}
-
 const PrimarySearchAppBar = () => {
     const [allEmails,setAllEmails] = useState([])
     const [filteredResults,setFilteredResults] = useState([])
     const [searchTerm, setSearchTerm] = useState("");
+    const navigate = useNavigate()
 
-    //Create a route and controller to getUserFriends
-    //Get all the friends of user and then remove them from allEmails then render the list
+    useEffect(()=>{
+        try {
+            (async function getAllUsersEmailFunc(){
+                const getEmails = await getAllUsersEmail()
+                setAllEmails(getEmails.listOfAllEmails)
+            })()
+        } catch (error) {
+            console.log(error)
+        }
+    },[])
 
+    // useEffect(()=>{
+    //     try {
+    //         const AlreadyFriendsFunc =( async ()=>{
+    //             const token = await getToken()
+
+    //             if(!token){
+    //                 console.log("User is not Authenticated")
+    //             }
+
+    //             const ORIGIN = process.env.REACT_APP_ORIGIN
+    //             const response = await axios.post(`${ORIGIN}/getUserData`,{},
+    //             {
+    //                 headers:{"Authorization":`Bearer ${token}`}
+    //             })
+
+    //             if(!response){
+    //                 console.log("There is some problem while fetching the data")
+    //             }
+    //             if(!response.data.success){
+    //                 console.log(response.data.message)
+    //             }
+    //             if(!response.data.friends){
+    //                 console.log("There is some problem while fetching the data")
+    //             }
+    //             console.log(response.data.friends)
+
+    //         })()
+    //     } catch (error) {
+    //         console.log(error)
+    //     }
+    // },[])
+
+    //There is a bug in this that user's own email as well as other users who are already friends with current user are also displayed in the list
+    //I wrote a function to remove those names above, but the function return array of Mongodb's ObjectId on the other hand the filter condition below is based on emails
+    //But this is validated in Backend to prevent duplicate or self adding of friends in the friend's array
     useEffect(()=>{
         //If the array is not empty and the search term is not empty
         if(allEmails.length != 0 && searchTerm != ""){
@@ -85,24 +119,28 @@ const PrimarySearchAppBar = () => {
         }else{
             setFilteredResults([]);
         }
-    },[allEmails,searchTerm])
-
-    const searchEmail = async (e) => {
-
-        setSearchTerm(e.target.value)
-
-        const getEmails = await getAllUsersEmail()
-
-        setAllEmails(getEmails.listOfAllEmails)
-        
-    };
+    },[searchTerm])
 
     const handleSearchKeyDown = (e) => {
         //On press of Enter key
         if (e.key === 'Enter') {
-            searchEmail(e);
+            setSearchTerm(e.target.value)        
         }
     };
+
+    const addedFriend = async (friendEmail) =>{
+        try {
+            const isAdded = await addFriendBothWays(friendEmail)
+            console.log(isAdded.message)
+            if(isAdded.success){
+                return navigate("/main")
+            }
+        } catch (error) {
+            console.log(error)
+            return {message:"The friend could not be added",success:false}
+        }
+        
+    }
 
     return (
         <Box sx={{ flexGrow: 1 }}>
@@ -113,7 +151,7 @@ const PrimarySearchAppBar = () => {
                         <SearchIcon />
                         </SearchIconWrapper>
                         <StyledInputBase
-                            placeholder="Search…"
+                            placeholder="Search…and Press Enter"
                             inputProps={{ 'aria-label': 'search' }}
                             onKeyDown={handleSearchKeyDown}
                         />
