@@ -7,6 +7,7 @@ import AccountCircle from '@mui/icons-material/AccountCircle';
 import MenuItem from '@mui/material/MenuItem';
 import Menu from '@mui/material/Menu';
 import { useNavigate } from 'react-router-dom';
+import { logout } from '../utils/Auth';
 
 export default function MenuAppBar(props) {
   const [anchorEl, setAnchorEl] = React.useState(null);
@@ -22,6 +23,22 @@ export default function MenuAppBar(props) {
 
   const addFriend = () =>{
     navigate("/addFriend")
+  }
+
+  const userLogout = () =>{
+    try {
+      const didLogout = logout()
+
+      if(!didLogout || !didLogout.success){
+        console.log("The user was not logged out due to some problem")
+      }
+
+      console.log(didLogout.message)
+      navigate("/",{replace:true})
+    } catch (error) {
+      console.log(error)
+        console.log("Error while logging out")
+    }
   }
 
   return (
@@ -54,7 +71,8 @@ export default function MenuAppBar(props) {
                 open={Boolean(anchorEl)}
                 onClose={handleClose}
               >
-                <MenuItem onClick={handleClose}>Logout</MenuItem>
+                {/* <MenuItem onClick={handleClose}>Logout</MenuItem> */}
+                <MenuItem onClick={userLogout}>Logout</MenuItem>
                 <MenuItem onClick={addFriend}>Add Friend</MenuItem>
               </Menu>
         </Toolbar>

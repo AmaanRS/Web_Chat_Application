@@ -59,3 +59,24 @@ export const getToken = async ()=>{
     }
 }
 
+
+export const logout = () =>{
+    try {
+        const token = getToken()
+
+        if(!token){
+            return {message:"The user is not Authenticated",success:false}
+        }
+
+        //If the cookie is removed or not it does not give any thing in response
+        //It means that even if the removing of cookie fails it won't go to error block or return null or undefined - docs of js-Cookie
+        Cookies.remove("token",{ expires: 1, path: '/'})
+
+        return {message:"User has been logged out successfully",success:true}
+
+    } catch (error) {
+        
+        console.log(error)
+        return {message:"Could not logout due to some error",success:false}
+    }
+}
