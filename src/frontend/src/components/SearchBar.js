@@ -8,10 +8,12 @@ import SearchIcon from '@mui/icons-material/Search';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import ListItemText from '@mui/material/ListItemText';
+import axios from 'axios'
 import { getAllUsersEmail } from '../utils/DataFetch';
 import { ListItemButton } from '@mui/material';
 import {addFriendBothWays} from '../utils/AddFriendBothWays'
 import { useNavigate } from 'react-router-dom';
+import { getToken } from '../utils/Auth';
 
 const Search = styled('div')(({ theme }) => ({
     position: 'relative',
@@ -53,11 +55,18 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
 }));
 
 const PrimarySearchAppBar = () => {
+    //All Emails that are in the database
     const [allEmails,setAllEmails] = useState([])
+
+    //All the Emails that are User's Friends
+    const [isAlreadyFriends,setIsAlreadyFriends] = useState([])
+
+    //All the emails that will be rendered when searched for
     const [filteredResults,setFilteredResults] = useState([])
     const [searchTerm, setSearchTerm] = useState("");
     const navigate = useNavigate()
 
+    //This is to get All the emails from the database
     useEffect(()=>{
         try {
             (async function getAllUsersEmailFunc(){
@@ -69,55 +78,69 @@ const PrimarySearchAppBar = () => {
         }
     },[])
 
-    // Changed the getUserData endpoint so now the below mentioned bug is fixable
+    // Only user himself showing while searching is left
 
-    // useEffect(()=>{
-    //     try {
-    //         const AlreadyFriendsFunc =( async ()=>{
-    //             const token = await getToken()
+    //This is to get all the Friends of the user
+    useEffect(()=>{
+        try {
+            const AlreadyFriendsFunc =( async ()=>{
+                const token = await getToken()
 
-    //             if(!token){
-    //                 console.log("User is not Authenticated")
-    //             }
+                if(!token){
+                    console.log("User is not Authenticated")
+                }
 
-    //             const ORIGIN = process.env.REACT_APP_ORIGIN
-    //             const response = await axios.post(`${ORIGIN}/getUserData`,{},
-    //             {
-    //                 headers:{"Authorization":`Bearer ${token}`}
-    //             })
+                const ORIGIN = process.env.REACT_APP_ORIGIN
+                const response = await axios.post(`${ORIGIN}/getUserData`,{},
+                {
+                    headers:{"Authorization":`Bearer ${token}`}
+                })
 
-    //             if(!response){
-    //                 console.log("There is some problem while fetching the data")
-    //             }
-    //             if(!response.data.success){
-    //                 console.log(response.data.message)
-    //             }
-    //             if(!response.data.friends){
-    //                 console.log("There is some problem while fetching the data")
-    //             }
-    //             console.log(response.data.friends)
+                if(!response){
+                    console.log("There is some problem while fetching the data")
+                }
 
-    //         })()
-    //     } catch (error) {
-    //         console.log(error)
-    //     }
-    // },[])
+                if(!response.data.success){
+                    console.log(response.data.message)
+                }
 
-    //There is a bug in this that user's own email as well as other users who are already friends with current user are also displayed in the list
-    //I wrote a function to remove those names above, but the function return array of Mongodb's ObjectId on the other hand the filter condition below is based on emails
-    //But this is validated in Backend to prevent duplicate or self adding of friends in the friend's array
+                if(!response.data.friends){
+                    console.log("There is some problem while fetching the data")
+                }
+
+                let onlyFriendsEmails = []
+
+                for(let i = 0;i < response.data.friends.length ; i++){
+                    onlyFriendsEmails.push(response.data.friends[i].email)
+                }
+
+                setIsAlreadyFriends(onlyFriendsEmails)
+
+            })()
+        } catch (error) {
+            console.log(error)
+        }
+    },[])
+
+    //There is a bug in this, that user's own email is displayed in the list
+
     useEffect(()=>{
         //If the array is not empty and the search term is not empty
         if(allEmails.length != 0 && searchTerm != ""){
-            let updatedFilteredResults = []
+            let finalFilteredResults = []
+
+            let filteredArray = allEmails.filter((element) => {
+                return !isAlreadyFriends.includes(element);
+            });
             
             //Push all the emails to the array
-            for(let i = 0;i<allEmails.length;i++){
-                if(allEmails[i].includes(searchTerm)){
-                    updatedFilteredResults.push(allEmails[i])
+            for(let i = 0;i<filteredArray.length;i++){
+                if(filteredArray[i].includes(searchTerm)){
+                    finalFilteredResults.push(filteredArray[i])
                 }
             }
-            setFilteredResults(updatedFilteredResults);
+
+            setFilteredResults(finalFilteredResults);
         }else{
             setFilteredResults([]);
         }
