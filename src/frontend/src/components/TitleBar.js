@@ -30,7 +30,7 @@ function ResponsiveAppBar(props) {
               textDecoration: 'none'
             }}
           >
-            {props.name}
+            {props.email}
           </Typography>
         </Toolbar>
       </Container>

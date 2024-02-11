@@ -15,40 +15,52 @@ export default function Main() {
   //Done setting email as current user's name in UI,rendering friends list is left
   let {email,friends} = useLoaderData()
 
+  //If there are no friends then add a test friend(You can't start a conversation since it's for testing)
   if(friends.length == 0){
-      friends.push("TestBot@gmail.com")
+      friends.push({email:"TestBot@gmail.com"})
   }
 
   //Populate this using the content from database
-  var [chatAreaContent,setChatAreaContent] = useState(friends[0])
+  var [chatAreaContent,setChatAreaContent] = useState("")
 
-  var [indexx,setIndexx] = useState("Emptyyyyy")
+  //Which friend's chat is open for conversation
+  var [ currentChat, setCurrentChat ] = useState(0)
 
+  //Used to add saved chat from database to the chat area, not to add data to the conversation 
   function addDataToChatArea(chatAreaContent){
+
     const newDiv = document.createElement("div")
     newDiv.innerHTML = chatAreaContent
     const chatArea = document.getElementById("chatArea")
     chatArea.innerHTML = ""
     chatArea.appendChild(newDiv)
+
   }
 
   useEffect(()=>{
     addDataToChatArea(chatAreaContent)
   },[chatAreaContent])
 
-
+  //Function to render the list of friends
   function renderRow(props) {
     const { index, style } = props;
-    const displayChatArea = (index)=>{
-      console.log("displayChatArea onClick works "+ (index+1))
-      setIndexx(index+1)
+
+    const openChat = (index)=>{
+      setCurrentChat(index)
+      // console.log("openChat onClick works "+ (index+1))
+
+      //Content of conversation between users
       setChatAreaContent(`${index+1}`)
     }
+
+    // console.log(friends)
   
     return (
       <ListItem style={style} key={index} component="div" disablePadding>
-        <ListItemButton sx={{background:"white", border:"0.5px solid #808080"}} onClick={()=>displayChatArea(index)}>
-          <ListItemText primary={friends[index]} />
+        <ListItemButton sx={{background:"white", border:"0.5px solid #808080"}} onClick={()=>openChat(index)}>
+
+          {/* To display email on every list item */}
+          <ListItemText primary={friends[index].email} />
         </ListItemButton>
       </ListItem>
     );
@@ -76,7 +88,7 @@ export default function Main() {
           <Grid item xs={8}>
             <Container disableGutters>
               <Box sx={{height:"100vh", overflowY:"scroll"}} >
-                <TitleBar name={indexx}/>
+                <TitleBar email={friends[currentChat].email}/>
                 <div id='chatArea'>
 
                 </div>

@@ -121,7 +121,13 @@ const getUserData =async (req,res)=>{
             return res.json({message:"Cannot get users data",success:false})
         }
 
-        return res.json({message:"User's data fetched successfully",success:true,email:userData.email,friends:userData.friends})
+        const friends = (await userData.populate("friends","email _id")).friends
+
+        if(!friends){
+            return res.json({message:"Cannot get users data",success:false})
+        }
+
+        return res.json({message:"User's data fetched successfully",success:true,email:userData.email,friends:friends})
         
     } catch (error) {
         

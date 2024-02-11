@@ -69,6 +69,8 @@ const PrimarySearchAppBar = () => {
         }
     },[])
 
+    // Changed the getUserData endpoint so now the below mentioned bug is fixable
+
     // useEffect(()=>{
     //     try {
     //         const AlreadyFriendsFunc =( async ()=>{
