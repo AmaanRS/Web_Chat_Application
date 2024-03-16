@@ -9,6 +9,7 @@ import { FixedSizeList } from 'react-window';
 import TitleBar from "./TitleBar"
 import SelfTitleBar from "./SelfTitleBar"
 import { useLoaderData } from 'react-router-dom';
+import ChatArea from './ChatArea';
 
 export default function Main() {
 
@@ -20,26 +21,8 @@ export default function Main() {
       friends.push({email:"TestBot@gmail.com"})
   }
 
-  //Populate this using the content from database
-  var [chatAreaContent,setChatAreaContent] = useState("")
-
   //Which friend's chat is open for conversation
   var [ currentChat, setCurrentChat ] = useState(0)
-
-  //Used to add saved chat from database to the chat area, not to add data to the conversation 
-  function addDataToChatArea(chatAreaContent){
-
-    const newDiv = document.createElement("div")
-    newDiv.innerHTML = chatAreaContent
-    const chatArea = document.getElementById("chatArea")
-    chatArea.innerHTML = ""
-    chatArea.appendChild(newDiv)
-
-  }
-
-  useEffect(()=>{
-    addDataToChatArea(chatAreaContent)
-  },[chatAreaContent])
 
   //Function to render the list of friends
   function renderRow(props) {
@@ -47,13 +30,7 @@ export default function Main() {
 
     const openChat = (index)=>{
       setCurrentChat(index)
-      // console.log("openChat onClick works "+ (index+1))
-
-      //Content of conversation between users
-      setChatAreaContent(`${index+1}`)
     }
-
-    // console.log(friends)
   
     return (
       <ListItem style={style} key={index} component="div" disablePadding>
@@ -72,7 +49,7 @@ export default function Main() {
       <Box sx={{ bgcolor: '#cfe8fc', height: '100vh' }}>
         <Grid container spacing={0}>
           <Grid item xs={4}>
-            <Paper elevation={0}>
+          <Paper elevation={0}>
               <SelfTitleBar email={email}/>
           <FixedSizeList
             height={575}
@@ -89,9 +66,7 @@ export default function Main() {
             <Container disableGutters>
               <Box sx={{height:"100vh", overflowY:"scroll"}} >
                 <TitleBar email={friends[currentChat].email}/>
-                <div id='chatArea'>
-{/* a */}
-                </div>
+                <ChatArea email={friends[currentChat].email}/>
               </Box>
             </Container>
           </Grid>
