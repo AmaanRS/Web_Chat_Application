@@ -90,7 +90,7 @@ export default function Main() {
               <Box sx={{height:"100vh", overflowY:"scroll"}} >
                 <TitleBar email={friends[currentChat].email}/>
                 <div id='chatArea'>
-
+{/* a */}
                 </div>
               </Box>
             </Container>
