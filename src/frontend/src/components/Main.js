@@ -10,11 +10,13 @@ import TitleBar from "./TitleBar"
 import SelfTitleBar from "./SelfTitleBar"
 import { useLoaderData } from 'react-router-dom';
 import ChatArea from './ChatArea';
+import { getUserConversation } from "../utils/DataFetch"
 
 export default function Main() {
 
-  //Done setting email as current user's name in UI,rendering friends list is left
   let {email,friends} = useLoaderData()
+
+  //This would give an error to a new user because such a user does not exist in database so create a default user a replace it with this
 
   //If there are no friends then add a test friend(You can't start a conversation since it's for testing)
   if(friends.length == 0){
@@ -24,11 +26,15 @@ export default function Main() {
   //Which friend's chat is open for conversation
   var [ currentChat, setCurrentChat ] = useState(0)
 
+  const [ convContent, setConvContent ] = useState()
+
   //Function to render the list of friends
   function renderRow(props) {
     const { index, style } = props;
 
-    const openChat = (index)=>{
+    const openChat = async (index)=>{
+      const conv = await getUserConversation(friends[index].email)
+      setConvContent(conv.conversation)
       setCurrentChat(index)
     }
   
@@ -66,7 +72,7 @@ export default function Main() {
             <Container disableGutters>
               <Box sx={{height:"100vh", overflowY:"scroll"}} >
                 <TitleBar email={friends[currentChat].email}/>
-                <ChatArea email={friends[currentChat].email}/>
+                <ChatArea email={friends[currentChat].email} conversation={convContent}/>
               </Box>
             </Container>
           </Grid>

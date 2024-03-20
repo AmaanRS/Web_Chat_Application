@@ -1,4 +1,5 @@
 const userModel = require("../Models/User")
+const conversationModel = require("../Models/Conversation")
 const bcrypt = require("bcrypt")
 const jwt = require("jsonwebtoken")
 const mongoose = require("mongoose")
@@ -254,4 +255,55 @@ const addFriendBothWays = async (req,res)=>{
     }
 }
 
-module.exports = { login,signup,mainPage,getUserData,getAllUsersEmail,addFriendBothWays }
+const getUserConversation = async (req,res)=>{
+    try {
+
+        //User is not authenticated
+        if(!req.middlewareRes.success){
+            return res.json({message:req.middlewareRes.message,success:req.middlewareRes.success})
+        }
+
+        //Email id of user
+
+        const { decodedToken } = req.middlewareRes
+
+        const { friendEmail } = req.body
+
+        if(!friendEmail){
+            return res.json({message:"Provide a friendEmail",success:false})
+        }
+
+        const friendId = (await userModel.findOne({email:friendEmail}))._id
+
+        const userId = (await userModel.findOne({email:decodedToken.email}))._id
+
+        if(!userId || !friendId){
+            return res.json({message:"Could not get both the friend and user id from the database",success:false})
+        }
+
+        let userConversation = await conversationModel.find
+        ({$and:[{Friend1:userId},{Friend2:friendId}]})
+
+        if(!userConversation){
+            return res.json({message:"Unable to find Conversation",success:false})
+        }
+
+        userConversation[0].ContentField.map((e)=>{
+            if(e.sender == userId.toString()){
+                e.sender = "Self"
+                e.receiver = "Friend"
+            }else{
+                e.sender = "Friend"
+                e.receiver = "Self"
+            }
+        })
+
+        return res.json({message:"Got the Conversation successfully",success:true,conversation:userConversation[0].ContentField})
+        
+    } catch (error) {
+        console.log(error)
+        return res.json({message:"Could not add as friends",success:false})
+    }
+}
+
+module.exports = { login,signup,mainPage,getUserData,getAllUsersEmail,addFriendBothWays,getUserConversation }

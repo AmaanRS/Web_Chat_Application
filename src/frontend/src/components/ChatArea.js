@@ -12,6 +12,9 @@ export default function ChatArea(props) {
         //Show a the data in the #chatContent with div
     }
 
+    console.log(props.conversation)
+
+
   return (
     <>
       Chat area

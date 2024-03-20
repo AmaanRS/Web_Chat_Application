@@ -10,10 +10,26 @@ const conversationSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref:"userModel"
     },
-    ContentField:{
-        type: String,
-        default:""
-    }
+    ContentField: [
+        {
+          sender: {
+            type: String,
+            required: true
+          },
+          receiver: {
+            type: String,
+            required: true
+          },
+          message: {
+            type: String,
+            required: true
+          },
+          timestamp: {
+            type: Date,
+            default: Date.now
+          }
+        }
+    ]
 },{timestamps:true})
 
 module.exports = mongoose.model("conversationModel",conversationSchema)

@@ -28,3 +28,32 @@ export const getAllUsersEmail = async () =>{
         return {message:"Cannot get all users data",success:false}
     }
 }
+
+
+export const getUserConversation = async (friendEmail)=>{
+    const ORIGIN = process.env.REACT_APP_ORIGIN
+
+    const token = await getToken()
+
+    if(!token){
+        return {message:"User is not Authenticated ",success:false}
+    }
+
+    if(!friendEmail){
+        return {message:"Please send friendEmail",success:false}
+    }
+
+    const conversation = await axios.post(`${ORIGIN}/getUserConversation`,{friendEmail:friendEmail},
+    {headers:{"Authorization" : `Bearer ${token}`}})
+
+    if(!conversation){
+        return {message:"There was aproblem while getting the conversation",success:false}
+    }
+
+    if(!conversation.data || !conversation.data.success){
+        return {message:conversation.data.message,success:false}
+    }
+
+    return {message:"The conversation was fetched successfully",success:true,conversation:conversation.data.conversation}
+
+}
