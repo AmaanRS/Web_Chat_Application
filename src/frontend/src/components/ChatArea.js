@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo } from "react";
 import TextField from "@mui/material/TextField";
 import { Button } from "@mui/material";
-import "../static/style.css";
 
 export default function ChatArea(props) {
   //Rather than this directly use react
