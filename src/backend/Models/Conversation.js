@@ -13,11 +13,13 @@ const conversationSchema = new mongoose.Schema({
     ContentField: [
         {
           sender: {
-            type: String,
+            type: mongoose.Schema.Types.ObjectId,
+            ref:"userModel",
             required: true
           },
           receiver: {
-            type: String,
+            type: mongoose.Schema.Types.ObjectId,
+            ref:"userModel",
             required: true
           },
           message: {

@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo } from "react";
 import TextField from "@mui/material/TextField";
 import { Button } from "@mui/material";
+import { sendMessage } from "../utils/DataFetch";
 
 export default function ChatArea(props) {
   //Rather than this directly use react
@@ -25,10 +26,16 @@ export default function ChatArea(props) {
   //   })()
   // },[])
 
-  const addToConversation = () => {
-    const chatContentArea = document.getElementById("chatContent");
+  const addToConversation = async () => {
+    // const chatContentArea = document.getElementById("chatContent");
+    const message = document.getElementById("outlined-multiline-flexible").value
 
-    // The message typed in the chat box should be displayed on screen and saved to database using an api call
+    const response = await sendMessage(props.email,message)
+
+    if(response.success){
+      document.getElementById("outlined-multiline-flexible").value = ""
+      
+    }
 
   };
 

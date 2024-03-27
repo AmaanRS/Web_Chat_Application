@@ -264,7 +264,6 @@ const getUserConversation = async (req,res)=>{
         }
 
         //Email id of user
-
         const { decodedToken } = req.middlewareRes
 
         const { friendEmail } = req.body
@@ -282,13 +281,19 @@ const getUserConversation = async (req,res)=>{
         }
 
         let userConversation = await conversationModel.find
-        ({$and:[{Friend1:userId},{Friend2:friendId}]})
+        ({$and:
+            [
+                { $or: [{ Friend1: userId }, { Friend1: friendId }] },
+                { $or: [{ Friend2: userId }, { Friend2: friendId }] }
+            ]
+        }).lean()
 
         if(!userConversation){
             return res.json({message:"Unable to find Conversation",success:false})
         }
+        console.log(userConversation)
 
-        userConversation[0].ContentField.map((e)=>{
+        userConversation[0].ContentField = userConversation[0].ContentField.map((e)=>{
             if(e.sender == userId.toString()){
                 e.sender = "Self"
                 e.receiver = "Friend"
@@ -296,6 +301,7 @@ const getUserConversation = async (req,res)=>{
                 e.sender = "Friend"
                 e.receiver = "Self"
             }
+            return e
         })
 
         return res.json({message:"Got the Conversation successfully",success:true,conversation:userConversation[0].ContentField})
@@ -306,4 +312,54 @@ const getUserConversation = async (req,res)=>{
     }
 }
 
-module.exports = { login,signup,mainPage,getUserData,getAllUsersEmail,addFriendBothWays,getUserConversation }
+const sendMessage = async (req,res) =>{
+try {
+    //User is not authenticated
+    if(!req.middlewareRes.success){
+        return res.json({message:req.middlewareRes.message,success:req.middlewareRes.success})
+    }
+
+    //Email id of user
+    const { decodedToken } = req.middlewareRes
+
+    const { friendEmail,message } = req.body
+
+    if(!friendEmail){
+        return res.json({message:"Provide a friendEmail",success:false})
+    }
+
+    const friendId = (await userModel.findOne({email:friendEmail}))._id
+
+    const userId = (await userModel.findOne({email:decodedToken.email}))._id
+
+    if(!userId || !friendId){
+        return res.json({message:"Could not get both the friend and user id from the database",success:false})
+    }
+
+    const response = await conversationModel.updateOne(
+        {
+            $or : 
+            [
+                {Friend1:userId,Friend2:friendId},
+                {Friend2: userId,Friend1: friendId}        
+        ]}
+        ,
+        {$push:
+            {ContentField:{
+                sender:userId,
+                receiver:friendId,
+                message:message
+    }}})
+
+    if(!response){
+        return res.json({message:"Could not add the message to the conversation",success:false})
+    }
+
+    return res.json({message:"Message added successfully",success:true})
+} catch (error) {
+    console.log(error)
+    return res.json({message:"Could not add as friends",success:false})
+}
+}
+
+module.exports = { login,signup,mainPage,getUserData,getAllUsersEmail,addFriendBothWays,getUserConversation,sendMessage }
