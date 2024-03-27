@@ -4,42 +4,6 @@ import { Button } from "@mui/material";
 import { sendMessage } from "../utils/DataFetch";
 
 export default function ChatArea(props) {
-  //Rather than this directly use react
-
-  // useEffect(()=>{
-  //   const addPreviousContentToChatArea = (()=>{
-  //     if(props.conversation === undefined) return
-  //     props.conversation.map((e)=>{
-  //       let side = ""
-  //       if(e.sender == "Self"){
-  //         //The message should be on right
-  //         side = "Right"
-  //       }else{
-  //         //The message should be on left
-  //         side = "Left"
-  //       }
-  //       const new_div = document.createElement("div")
-  //       new_div.innerText = e.message
-  //       new_div.setAttribute("class",side)
-  //       chatContentArea.appendChild(new_div)
-  //     })
-  //   })()
-  // },[])
-
-  const addToConversation = async () => {
-    // const chatContentArea = document.getElementById("chatContent");
-    const message = document.getElementById("outlined-multiline-flexible").value
-
-    const response = await sendMessage(props.email,message)
-
-    if(response.success){
-      document.getElementById("outlined-multiline-flexible").value = ""
-      
-    }
-
-  };
-
-  console.log(props.conversation);
 
   return (
     <>
@@ -72,7 +36,6 @@ export default function ChatArea(props) {
             style={{ width: "800px" }}
           />
           <Button
-            onClick={addToConversation}
             style={{ backgroundColor: "green", color: "white" }}
           >
             Send
