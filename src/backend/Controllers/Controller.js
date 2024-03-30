@@ -335,6 +335,26 @@ try {
     if(!userId || !friendId){
         return res.json({message:"Could not get both the friend and user id from the database",success:false})
     }
+    const doesConvExist = await conversationModel.findOne(
+        {
+            $or :[{Friend1:userId,Friend2:friendId},
+                {Friend1:friendId,Friend2:userId}]
+        }
+    ).lean()
+
+    if(!doesConvExist){
+        //Runs when the conversation does not exist
+        const createResponse = await conversationModel.create(
+            {
+                Friend1:userId,
+                Friend2:friendId,
+                ContentField:{
+                    sender:userId,
+                    receiver:friendId,
+                    message:message
+                }
+            })
+    }
 
     const response = await conversationModel.updateOne(
         {
