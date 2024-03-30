@@ -354,8 +354,7 @@ try {
                     message:message
                 }
             })
-    }
-
+    }else{
     const response = await conversationModel.updateOne(
         {
             $or : 
@@ -370,6 +369,7 @@ try {
                 receiver:friendId,
                 message:message
     }}})
+}
 
     if(!response){
         return res.json({message:"Could not add the message to the conversation",success:false})
