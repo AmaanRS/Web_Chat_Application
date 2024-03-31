@@ -1,5 +1,6 @@
 const express = require("express")
 const cors = require("cors")
+const fileUpload = require('express-fileupload')
 const cookieParser = require("cookie-parser")
 const path = require("path")
 const Routes = require("./Routes/Router")
@@ -12,6 +13,8 @@ app.use(cors())
 app.use(cookieParser())
 app.use(express.urlencoded({extended:true}))
 app.use(express.json())
+app.use(fileUpload())
+
 
 
 app.use(express.static(path.join(__dirname+"public/static")))

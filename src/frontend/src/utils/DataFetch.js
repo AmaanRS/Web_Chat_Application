@@ -59,7 +59,7 @@ export const getUserConversation = async (friendEmail)=>{
 }
 
 
-export const sendMessage = async (friendEmail,message)=>{
+export const sendMessage = async (friendEmail,message,file)=>{
     const ORIGIN = process.env.REACT_APP_ORIGIN
 
     const token = await getToken()
@@ -72,8 +72,23 @@ export const sendMessage = async (friendEmail,message)=>{
         return {message:"Please send friendEmail",success:false}
     }
 
-    const response = await axios.post(`${ORIGIN}/sendMessage`,{friendEmail:friendEmail,message:message},
-    {headers:{"Authorization" : `Bearer ${token}`}})
+    let response
+
+    console.log(file)
+
+    if(!message){
+        response = await axios.post(`${ORIGIN}/sendMessage`,{friendEmail:friendEmail,file:file},
+        {
+            headers:
+                {
+                    "Authorization" : `Bearer ${token}`,
+                    "Content-Type": "multipart/form-data"
+                }
+        })
+    }else{
+        response = await axios.post(`${ORIGIN}/sendMessage`,{friendEmail:friendEmail,message:message},
+        {headers:{"Authorization" : `Bearer ${token}`}})
+    }
 
     if(!response){
         return {message:"There was aproblem while getting the conversation",success:false}

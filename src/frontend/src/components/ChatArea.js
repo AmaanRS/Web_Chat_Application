@@ -39,6 +39,13 @@ export default function ChatArea(props) {
 
   };
 
+  const sendMultimedia = async(e)=>{
+    const response = await sendMessage(props.email,undefined,e.target.files[0])
+    if(response.success){
+      document.getElementById("outlined-multiline-flexible").value = ""
+    }
+  }
+
   console.log(props.conversation);
 
   return (
@@ -66,6 +73,11 @@ export default function ChatArea(props) {
           })}
         </div>
         <div>
+        <input type="file"
+            onChange={sendMultimedia}
+            style={{ backgroundColor: "green", color: "white" }}
+          >
+          </input>
           <TextField
             id="outlined-multiline-flexible"
             maxRows={4}

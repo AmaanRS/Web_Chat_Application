@@ -3,6 +3,8 @@ const conversationModel = require("../Models/Conversation")
 const bcrypt = require("bcrypt")
 const jwt = require("jsonwebtoken")
 const mongoose = require("mongoose")
+const multer = require('multer')
+
 
 
 const login = async (req,res)=>{
@@ -323,6 +325,10 @@ try {
     const { decodedToken } = req.middlewareRes
 
     const { friendEmail,message } = req.body
+
+    const { file } = req.body
+
+    console.log("Fileeeeeee \n"+file)
 
     if(!friendEmail){
         return res.json({message:"Provide a friendEmail",success:false})
