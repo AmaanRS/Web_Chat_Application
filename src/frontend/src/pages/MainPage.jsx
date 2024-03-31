@@ -1,5 +1,5 @@
-import React, { useEffect,useState } from 'react'
-import Main from '../components/Main'
+import { useEffect } from 'react'
+import Main from '../components/MainComponents/Main'
 import { getToken, isLogin } from '../utils/Auth'
 import { useLoaderData, useNavigate } from 'react-router-dom'
 import axios from 'axios'
@@ -24,7 +24,7 @@ const MainPage = () => {
 
 export const mainLoader =async ({request})=>{
   try {
-    const ORIGIN = process.env.REACT_APP_ORIGIN
+    const ORIGIN = import.meta.env.VITE_ORIGIN
     const login = await isLogin()
     const token = await getToken()
 

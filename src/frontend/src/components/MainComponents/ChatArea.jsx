@@ -1,7 +1,6 @@
-import React, { useEffect, useMemo } from "react";
+import React from "react";
 import TextField from "@mui/material/TextField";
 import { Button } from "@mui/material";
-import { sendMessage } from "../utils/DataFetch";
 
 export default function ChatArea(props) {
 

@@ -33,7 +33,7 @@ export const homeAction = async ({request,params}) =>{
   const password = data.get("password")
   const username = data.get("username")
 
-  const ORIGIN = process.env.REACT_APP_ORIGIN
+  const ORIGIN = import.meta.env.VITE_ORIGIN
 
   //If both email and password exists
   if(email && password){

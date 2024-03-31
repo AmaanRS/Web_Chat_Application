@@ -1,5 +1,5 @@
 import React from 'react'
-import PrimarySearchAppBar from '../components/SearchBar'
+import PrimarySearchAppBar from './SearchBar'
 
 const AddFriend = () => {
   return (

@@ -3,7 +3,7 @@ import axios from 'axios'
 
  export const addFriendBothWays = async (friendEmail) =>{
     try {
-        const ORIGIN = process.env.REACT_APP_ORIGIN
+        const ORIGIN = import.meta.env.VITE_ORIGIN
         const token = await getToken()
 
         //If token does not exist

@@ -1,4 +1,4 @@
-import React, { useEffect,useState } from 'react'
+import React, { useState } from 'react'
 import Container from '@mui/material/Container';
 import Box from '@mui/material/Box';
 import { Grid, Paper } from '@mui/material';
@@ -10,7 +10,7 @@ import TitleBar from "./TitleBar"
 import SelfTitleBar from "./SelfTitleBar"
 import { useLoaderData } from 'react-router-dom';
 import ChatArea from './ChatArea';
-import { getUserConversation } from "../utils/DataFetch"
+import { getUserConversation } from "../../utils/DataFetch"
 
 export default function Main() {
 

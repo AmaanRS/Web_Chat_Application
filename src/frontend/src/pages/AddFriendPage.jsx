@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react'
-import AddFriend from '../components/AddFriend'
+import AddFriend from '../components/AddFriendComponents/AddFriend'
 import { isLogin } from '../utils/Auth'
 import { useLoaderData, useNavigate } from 'react-router-dom'
 

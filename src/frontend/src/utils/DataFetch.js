@@ -3,7 +3,7 @@ import {getToken} from './Auth'
 
 export const getAllUsersEmail = async () =>{
     try {
-        const ORIGIN = process.env.REACT_APP_ORIGIN
+        const ORIGIN = import.meta.env.VITE_ORIGIN
         const token = await getToken()
 
         if(!token){
@@ -31,7 +31,7 @@ export const getAllUsersEmail = async () =>{
 
 
 export const getUserConversation = async (friendEmail)=>{
-    const ORIGIN = process.env.REACT_APP_ORIGIN
+    const ORIGIN = import.meta.env.VITE_ORIGIN
 
     const token = await getToken()
 
@@ -60,7 +60,7 @@ export const getUserConversation = async (friendEmail)=>{
 
 
 export const sendMessage = async (friendEmail,message)=>{
-    const ORIGIN = process.env.REACT_APP_ORIGIN
+    const ORIGIN = import.meta.env.VITE_ORIGIN
 
     const token = await getToken()
 

@@ -2,7 +2,7 @@ import Cookies from 'js-cookie';
 import axios from 'axios'
 
 export const isLogin = async () =>{
-    const ORIGIN = process.env.REACT_APP_ORIGIN
+    const ORIGIN = import.meta.env.VITE_ORIGIN
     try {
         const token = Cookies.get("token")
 

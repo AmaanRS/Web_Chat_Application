@@ -9,11 +9,11 @@ import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import ListItemText from '@mui/material/ListItemText';
 import axios from 'axios'
-import { getAllUsersEmail } from '../utils/DataFetch';
+import { getAllUsersEmail } from '../../utils/DataFetch';
 import { ListItemButton } from '@mui/material';
-import {addFriendBothWays} from '../utils/AddFriendBothWays'
+import {addFriendBothWays} from '../../utils/AddFriendBothWays'
 import { useNavigate } from 'react-router-dom';
-import { getToken } from '../utils/Auth';
+import { getToken } from '../../utils/Auth';
 
 const Search = styled('div')(({ theme }) => ({
     position: 'relative',
@@ -90,7 +90,7 @@ const PrimarySearchAppBar = () => {
                     console.log("User is not Authenticated")
                 }
 
-                const ORIGIN = process.env.REACT_APP_ORIGIN
+                const ORIGIN = import.meta.env.VITE_ORIGIN
                 const response = await axios.post(`${ORIGIN}/getUserData`,{},
                 {
                     headers:{"Authorization":`Bearer ${token}`}
