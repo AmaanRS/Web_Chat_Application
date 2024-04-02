@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import Container from '@mui/material/Container';
 import Box from '@mui/material/Box';
 import { Grid, Paper } from '@mui/material';
@@ -16,28 +16,26 @@ export default function Main() {
 
   let {email,friends} = useLoaderData()
 
-  //This would give an error to a new user because such a user does not exist in database so create a default user a replace it with this
-
-  //If there are no friends then add a test friend(You can't start a conversation since it's for testing)
-  if(friends.length == 0){
-      friends.push({email:"TestBot@gmail.com"})
-  }
-
   //Which friend's chat is open for conversation
   var [ currentChat, setCurrentChat ] = useState(0)
 
   const [ convContent, setConvContent ] = useState()
 
+  useEffect(()=>{
+    console.log(convContent)
+    openChat(0)
+  },[])
+
+  const openChat = async (index)=>{
+      const conv = await getUserConversation(friends[index]?.email)
+      setConvContent(conv.conversation)
+      setCurrentChat(index)
+  }
+
   //Function to render the list of friends
   function renderRow(props) {
     const { index, style } = props;
 
-    const openChat = async (index)=>{
-      const conv = await getUserConversation(friends[index].email)
-      setConvContent(conv.conversation)
-      setCurrentChat(index)
-    }
-  
     return (
       <ListItem style={style} key={index} component="div" disablePadding>
         <ListItemButton sx={{background:"white", border:"0.5px solid #808080"}} onClick={()=>openChat(index)}>
@@ -71,8 +69,8 @@ export default function Main() {
           <Grid item xs={8}>
             <Container disableGutters>
               <Box sx={{height:"100vh", overflowY:"scroll"}} >
-                <TitleBar email={friends[currentChat].email}/>
-                <ChatArea email={friends[currentChat].email} conversation={convContent}/>
+                <TitleBar email={friends[currentChat]?.email}/>
+                <ChatArea email={friends[currentChat]?.email} conversation={convContent}/>
               </Box>
             </Container>
           </Grid>

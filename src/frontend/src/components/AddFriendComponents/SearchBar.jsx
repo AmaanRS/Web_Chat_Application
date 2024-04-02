@@ -78,8 +78,6 @@ const PrimarySearchAppBar = () => {
         }
     },[])
 
-    // Only user himself showing while searching is left
-
     //This is to get all the Friends of the user
     useEffect(()=>{
         try {
@@ -121,8 +119,6 @@ const PrimarySearchAppBar = () => {
             console.log(error)
         }
     },[])
-
-    //There is a bug in this, that user's own email is displayed in the list
 
     useEffect(()=>{
         //If the array is not empty and the search term is not empty
