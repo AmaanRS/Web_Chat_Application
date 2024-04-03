@@ -1,4 +1,4 @@
-import { json, redirect, useActionData, useLoaderData, useNavigate } from 'react-router-dom';
+import { json, useActionData, useLoaderData, useNavigate } from 'react-router-dom';
 import Home from '../components/Home';
 import axios from 'axios';
 import Cookies from 'js-cookie';
@@ -77,9 +77,9 @@ export const homeAction = async ({request,params}) =>{
         }
 
         //If the credentials are correct the set the jwt token as cookie
-        Cookies.set('token', response.data.token, { expires: 1, path: '/'});
+        Cookies.set("token", response.data.token, { expires: 1, path: '/'});
 
-        return redirect("/main")
+        return json({message:"Logged in successfully",email:email})
       } catch (error) {
 
           return json({message:"There has been an error in logging in"})
