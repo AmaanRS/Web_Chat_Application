@@ -1,6 +1,9 @@
 const express = require("express");
+const tokenVerify = require("./tokenVerify")
 const cors = require("cors");
 require("dotenv").config()
+const socketAuth = require('socketio-auth');
+
 
 const app = express();
 const PORT = process.env.SOCKET_PORT;
@@ -31,6 +34,34 @@ io.on("connection", (socket) => {
     console.log("🔥: A user disconnected");
   });
 });
+
+
+
+
+//Authentication
+socketAuth(io,{
+  authenticate: async(socket,data,callback)=>{
+    const { token } = data;
+
+    try {
+      const data = tokenVerify(token)
+
+      socket.email = data.email
+
+      return callback(null, true);
+    } catch (error) {
+      console.log(`Socket ${socket.id} unauthorized.`);
+      return callback({ message: 'UNAUTHORIZED' });
+    }
+  },
+  postAuthenticate: (socket) => {
+    console.log(`Socket ${socket.id} authenticated.`);
+  },
+  disconnect: (socket) => {
+    console.log(`Socket ${socket.id} disconnected.`);
+  }
+})
+
 
 (function startServer(){
   try {
