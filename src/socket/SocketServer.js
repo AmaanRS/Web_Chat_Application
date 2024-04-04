@@ -12,16 +12,20 @@ const http = require("http").Server(app);
 
 const io = require("socket.io")(http, {
   cors: {
-    origin: `http://localhost:${process.env.FRONTEND_PORT}`,
+    origin: `http://127.0.0.1:${process.env.FRONTEND_PORT}`,
   },
 });
 
 io.on("connection", (socket) => {
   console.log(`⚡: ${socket.id} user just connected!`);
 
-//   socket.on("NewUser", (data) => {
-//     console.log(data.data);
-//   });
+  //Check this
+  socket.on("event:send_message", (data) => {
+    console.log(data.message);
+    console.log(data.to);
+    //Send the message to the person
+    io.to(data.to).emit("onMessageRec",{message:data.message})
+  });
 
   socket.on("disconnect", () => {
     console.log("🔥: A user disconnected");

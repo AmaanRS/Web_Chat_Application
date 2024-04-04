@@ -8,9 +8,14 @@ const SocketProvider = ({children})=>{
 
     //Implement sendMessage and onMessageRec functions here and chnage the logic of sending,receiving and displaying message
 
+    //Check this
+    const sendMessageTo = (message,to)=>{
+        socket.emit("event:send_message",{message:message,to:to})
+    }
+
     return(
-        // <SocketContext.Provider value={{ sendMessage, onMessageRec }}>
-        <SocketContext.Provider value={{ }}>
+        // <SocketContext.Provider value={{ sendMessageTo, onMessageRec }}>
+        <SocketContext.Provider value={{ sendMessageTo }}>
             {children}
         </SocketContext.Provider>
     )
