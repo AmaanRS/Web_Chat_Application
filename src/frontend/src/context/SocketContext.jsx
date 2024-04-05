@@ -1,19 +1,15 @@
-import { createContext } from 'react';
-import socketIO from 'socket.io-client';
+import { createContext, useEffect } from 'react';
+import { io } from 'socket.io-client';
 import { getToken } from '../utils/Auth';
-const socket = socketIO.connect(import.meta.env.VITE_SOCKET_ORIGIN);
+const socket = io(import.meta.env.VITE_SOCKET_ORIGIN);
 
 const SocketContext = createContext()
 
-const SocketProvider = async ({children})=>{
-    const token = await getToken()
+const SocketProvider = ({children})=>{
+    try {
 
-    socket.on("connect",()=>{
-        console.log("WebSocket connected successfully")
-        socket.emit('authentication', {
-            token: token
-          });
-    })
+    let error = null
+    
 
     //Implement sendMessage and onMessageRec functions here and chnage the logic of sending,receiving and displaying message
 
@@ -30,14 +26,35 @@ const SocketProvider = async ({children})=>{
     
         socket.disconnect();
     });
+
+    useEffect(()=>{
+        (async function c() {
+
+            const token = await getToken()
+            console.log(token)
+            
+            socket.on("connect",()=>{
+            console.log("WebSocket connected successfully")
+            socket.emit('authentication', {
+                token: token
+            });
+        })
+    })()
+    },[])
     
 
     return(
         // <SocketContext.Provider value={{ sendMessageTo, onMessageRec }}>
-        <SocketContext.Provider value={{ sendMessageTo }}>
+        <SocketContext.Provider value={{  }}>
             {children}
         </SocketContext.Provider>
     )
+        
+    } catch (error) {
+        console.error("Error in SocketProvider:", error);
+        return null;
+    }
+    
 }
 
 export default SocketProvider

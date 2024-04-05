@@ -11,6 +11,7 @@ import SelfTitleBar from "./SelfTitleBar"
 import { useLoaderData } from 'react-router-dom';
 import ChatArea from './ChatArea';
 import { getUserConversation } from "../../utils/DataFetch"
+import SocketProvider from '../../context/SocketContext';
 
 export default function Main() {
 
@@ -70,7 +71,9 @@ export default function Main() {
             <Container disableGutters>
               <Box sx={{height:"100vh", overflowY:"scroll"}} >
                 <TitleBar email={friends[currentChat]?.email}/>
-                <ChatArea email={friends[currentChat]?.email} conversation={convContent}/>
+                <SocketProvider>
+                  <ChatArea email={friends[currentChat]?.email} conversation={convContent}/>
+                </SocketProvider>
               </Box>
             </Container>
           </Grid>

@@ -1,8 +1,11 @@
 const express = require("express");
-const tokenVerify = require("./tokenVerify")
+const tokenVerify = require("./tokenVerify");
 const cors = require("cors");
-require("dotenv").config()
-const socketAuth = require('socketio-auth');
+require("dotenv").config();
+const bluebird = require('bluebird');
+const redis = require('redis');
+const socketAuth = require("socketio-auth");
+const adapter = require('socket.io-redis');
 
 
 const app = express();
@@ -19,6 +22,66 @@ const io = require("socket.io")(http, {
   },
 });
 
+
+bluebird.promisifyAll(redis);
+
+const client = redis.createClient({
+  host: process.env.REDIS_HOST,
+  port: process.env.REDIS_PORT,
+  // password: process.env.REDIS_PASS,
+});
+
+
+//Authentication
+socketAuth(io, {
+  authenticate: async (socket, data, callback) => {
+    const { token } = data;
+
+    try {
+      const data = tokenVerify(token);
+      const canConnect = await client.setAsync(
+        `users:${data.decodedToken.email}`,
+        socket.id,
+        "NX",
+        "EX",
+        30
+      );
+      console.log(canConnect+"HIIIIIIIIIIIIIIIIIIIIIIIIIIIIII")
+
+      if (!canConnect) {
+        return callback({ message: "ALREADY_LOGGED_IN" });
+      }
+
+      socket.email = data.decodedToken.email;
+
+      return callback(null, true);
+
+    } catch (error) {
+      console.log(error)
+      console.log(`Socket ${socket.id} unauthorized.`);
+      return callback({ message: "UNAUTHORIZED" });
+
+    }
+  },
+  postAuthenticate: (socket) => {
+    console.log(`Socket ${socket.id} authenticated.`);
+
+    socket.conn.on('packet', async (packet) => {
+      if (socket.auth && packet.type === 'ping') {
+        await client.setAsync(`users:${socket.user.id}`, socket.id, 'XX', 'EX', 30);
+      }
+    })
+
+  },
+  disconnect: async(socket) => {
+    console.log(`Socket ${socket.id} disconnected.`);
+
+    if (socket.user) {
+      await client.delAsync(`users:${socket.email}`);
+    }
+  },
+});
+
 io.on("connection", (socket) => {
   console.log(`⚡: ${socket.id} user just connected!`);
 
@@ -27,7 +90,7 @@ io.on("connection", (socket) => {
     console.log(data.message);
     console.log(data.to);
     //Send the message to the person
-    io.to(data.to).emit("onMessageRec",{message:data.message})
+    io.to(data.to).emit("onMessageRec", { message: data.message });
   });
 
   socket.on("disconnect", () => {
@@ -35,40 +98,22 @@ io.on("connection", (socket) => {
   });
 });
 
-
-
-
-//Authentication
-socketAuth(io,{
-  authenticate: async(socket,data,callback)=>{
-    const { token } = data;
-
-    try {
-      const data = tokenVerify(token)
-
-      socket.email = data.email
-
-      return callback(null, true);
-    } catch (error) {
-      console.log(`Socket ${socket.id} unauthorized.`);
-      return callback({ message: 'UNAUTHORIZED' });
-    }
-  },
-  postAuthenticate: (socket) => {
-    console.log(`Socket ${socket.id} authenticated.`);
-  },
-  disconnect: (socket) => {
-    console.log(`Socket ${socket.id} disconnected.`);
-  }
-})
-
-
-(function startServer(){
+(function startServer() {
   try {
     http.listen(PORT, () => {
       console.log(`Http Server along with Socket Server listening on ${PORT}`);
     });
   } catch (error) {
-    console.log(`Http Server along with Socket Server is not running because ${error.message}`);
+    console.log(
+      `Http Server along with Socket Server is not running because ${error.message}`
+    );
   }
 })()
+
+const redisAdapter = adapter({
+  host: process.env.REDIS_HOST ,
+  port: process.env.REDIS_PORT,
+  // password: process.env.REDIS_PASS,
+});
+
+io.adapter(redisAdapter);

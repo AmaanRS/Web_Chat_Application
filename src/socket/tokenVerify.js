@@ -1,6 +1,6 @@
 const jwt = require("jsonwebtoken")
 
-export default function tokenVerify(token){
+function tokenVerify(token){
 
     try {
         
@@ -20,3 +20,5 @@ export default function tokenVerify(token){
     }
 
 }
+
+module.exports = tokenVerify
