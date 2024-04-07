@@ -25,9 +25,10 @@ export default function MenuAppBar(props) {
     navigate("/addFriend")
   }
 
-  const userLogout = () =>{
+  const userLogout = async() =>{
     try {
-      const didLogout = logout()
+      const didLogout = await logout()
+      console.log(didLogout)
 
       if(!didLogout || !didLogout.success){
         console.log("The user was not logged out due to some problem")

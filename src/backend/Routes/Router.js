@@ -12,6 +12,8 @@ const { cookieChecker } = require("../Middlewares/CookieChecker")
 const Router = express.Router()
 
 Router.route("/login").post(login)
+// This api endpoint is written in SocketServer
+// Router.route("/logout").post(cookieChecker,logout)
 Router.route("/signup").post(signup)
 Router.route("/main").post(cookieChecker,mainPage)
 Router.route("/getUserData").post(cookieChecker,getUserData)
