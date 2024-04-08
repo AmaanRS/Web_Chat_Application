@@ -1,6 +1,6 @@
 const jwt = require("jsonwebtoken")
 
-const cookieChecker = async( req, res, next )=>{
+const cookieChecker = ( req, res, next )=>{
     //Get token from the request's header
     const token = req.headers.authorization?.split("Bearer ")[1]
 
