@@ -91,7 +91,7 @@ class SocketLogic {
       postAuthenticate: (socket) => {
         console.log(`Socket ${socket.id} authenticated.`);
 
-        //On get a ping from client the changes the expiration of a value in redis to 30sec if it already exists ie it renews connection every 25 secs since websocket pings every 25 secs
+        //On getting a ping from client this code changes the expiration of a value in redis to 30sec if it already exists; ie it renews connection every 25 secs since websocket pings every 25 secs
         socket.conn.on("packet", async (packet) => {
           if (socket.auth && packet.type === "pong") {
             await pub.set(`users:${socket.email}`, socket.id, "XX", "EX", 30);
@@ -144,6 +144,7 @@ class SocketLogic {
 
           //Email id of user
           const { decodedToken } = req.middlewareRes;
+          console.log(decodedToken.email)
           const response = await pub.del(`users:${decodedToken.email}`);
           socket.disconnect();
 

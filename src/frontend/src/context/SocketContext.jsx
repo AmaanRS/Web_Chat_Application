@@ -44,6 +44,8 @@ const SocketProvider = ({children})=>{
     
 
     return(
+        // Add socket variable as value in provider and then use it in sending token in Auth.js logout function instead of sending a post request since post request is getting stalled due to socket running on server
+        
         // <SocketContext.Provider value={{ sendMessageTo, onMessageRec }}>
         <SocketContext.Provider value={{  }}>
             {children}
