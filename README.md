@@ -1,3 +1,5 @@
+This is a complete working Web Chat app branch made using **node,react,mongodb**
+
 BUGS:
 
 You have to click on the friend's chat on first time rendering the page it does not select the chat automatically
