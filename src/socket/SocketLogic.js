@@ -3,10 +3,7 @@ const Redis = require("ioredis");
 const socketAuth = require("socketio-auth");
 require("dotenv").config();
 const tokenVerify = require("./tokenVerify");
-const { cookieChecker } = require("../backend/Middlewares/CookieChecker");
-const express = require("express");
-
-const app = express();
+const jwt = require("jsonwebtoken")
 
 //Create a redis client for publishing
 const pub = new Redis({
@@ -133,40 +130,63 @@ class SocketLogic {
         console.log("🔥: A user disconnected");
       });
 
-      app.post("/logout", cookieChecker, async (req, res) => {
+      socket.on("event:logout",async(data)=>{
         try {
-          if (!req.middlewareRes.success) {
-            return res.json({
-              message: req.middlewareRes.message,
-              success: req.middlewareRes.success,
-            });
+          //Get the token
+          const token = data.token
+
+          //Get the email from token
+          const res = tokenVerify(token)
+
+          if(!res.decodedToken){
+            return console.log("The key from redis could not be deleted")
           }
 
-          //Email id of user
-          const { decodedToken } = req.middlewareRes;
-          console.log(decodedToken.email)
-          const response = await pub.del(`users:${decodedToken.email}`);
+          //Delete the key from redis using the email
+          await pub.del(`users:${res.decodedToken.email}`);
           socket.disconnect();
-
-          if (!response) {
-            return res.json({
-              message: "The key from redis could not be deleted",
-              success: false,
-            });
-          }
-
-          return res.json({
-            message: "The user has logged out successfully",
-            success: true,
-          });
         } catch (error) {
-          console.log(error);
-          return res.json({
-            message: "Cannot log out from backend",
-            success: false,
-          });
+          console.log(error)
         }
-      });
+
+        
+
+      })
+
+    //   app.post("/logout", cookieChecker, async (req, res) => {
+    //     try {
+    //       if (!req.middlewareRes.success) {
+    //         return res.json({
+    //           message: req.middlewareRes.message,
+    //           success: req.middlewareRes.success,
+    //         });
+    //       }
+
+    //       //Email id of user
+    //       const { decodedToken } = req.middlewareRes;
+    //       console.log(decodedToken.email)
+    //       const response = await pub.del(`users:${decodedToken.email}`);
+    //       socket.disconnect();
+
+    //       if (!response) {
+    //         return res.json({
+    //           message: "The key from redis could not be deleted",
+    //           success: false,
+    //         });
+    //       }
+
+    //       return res.json({
+    //         message: "The user has logged out successfully",
+    //         success: true,
+    //       });
+    //     } catch (error) {
+    //       console.log(error);
+    //       return res.json({
+    //         message: "Cannot log out from backend",
+    //         success: false,
+    //       });
+    //     }
+    //   });
     });
   }
   get io() {

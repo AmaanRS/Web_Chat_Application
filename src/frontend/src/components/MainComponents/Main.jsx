@@ -50,6 +50,7 @@ export default function Main() {
 
   return (
     <>
+    <SocketProvider>
     <Container maxWidth="false" disableGutters>
       <Box sx={{ bgcolor: '#cfe8fc', height: '100vh' }}>
         <Grid container spacing={0}>
@@ -71,15 +72,14 @@ export default function Main() {
             <Container disableGutters>
               <Box sx={{height:"100vh", overflowY:"scroll"}} >
                 <TitleBar email={friends[currentChat]?.email}/>
-                <SocketProvider>
                   <ChatArea email={friends[currentChat]?.email} conversation={convContent}/>
-                </SocketProvider>
               </Box>
             </Container>
           </Grid>
         </Grid>
       </Box>
     </Container>
+    </SocketProvider>
     </>
   )
 }

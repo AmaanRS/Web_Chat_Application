@@ -1,4 +1,4 @@
-import { createContext, useEffect } from 'react';
+import { createContext, useContext, useEffect } from 'react';
 import { io } from 'socket.io-client';
 import { getToken } from '../utils/Auth';
 const socket = io(import.meta.env.VITE_SOCKET_ORIGIN);
@@ -44,8 +44,6 @@ const SocketProvider = ({children})=>{
     
 
     return(
-        // Add socket variable as value in provider and then use it in sending token in Auth.js logout function instead of sending a post request since post request is getting stalled due to socket running on server
-        
         // <SocketContext.Provider value={{ sendMessageTo, onMessageRec }}>
         <SocketContext.Provider value={{  }}>
             {children}
@@ -58,5 +56,8 @@ const SocketProvider = ({children})=>{
     }
     
 }
+
+//Export the socket variable as a function
+export const getSocket = () => socket;
 
 export default SocketProvider
