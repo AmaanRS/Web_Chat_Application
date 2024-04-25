@@ -3,6 +3,7 @@ const conversationModel = require("../Models/Conversation");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const mongoose = require("mongoose");
+const { pub,sub } = require("../../socket/SocketLogic")
 
 const login = async (req, res) => {
   try {
@@ -344,6 +345,9 @@ const getUserConversation = async (req, res) => {
       });
     }
 
+    
+
+
     let userConversation = await conversationModel
       .find({
         $and: [
@@ -352,7 +356,7 @@ const getUserConversation = async (req, res) => {
         ],
       })
       .lean();
-
+    
     if (!userConversation && !userConversation.ContentField) {
       return res.json({
         message: "Unable to find Conversation",

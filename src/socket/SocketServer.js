@@ -1,6 +1,6 @@
 require("dotenv").config();
 const PORT = process.env.SOCKET_PORT;
-const SocketLogic = require("./SocketLogic")
+const { SocketLogic } = require("./SocketLogic")
 const http = require("http");
 
 function init() {

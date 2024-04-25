@@ -3,7 +3,6 @@ const Redis = require("ioredis");
 const socketAuth = require("socketio-auth");
 require("dotenv").config();
 const tokenVerify = require("./tokenVerify");
-const jwt = require("jsonwebtoken")
 
 //Create a redis client for publishing
 const pub = new Redis({
@@ -50,6 +49,10 @@ class SocketLogic {
           //Verify it
           const data = tokenVerify(token);
 
+          if(!data || !data.success){
+            return callback({ message: "There is some problem in the token verification" });
+          }
+
           //Set a value in redis
           await pub.set(
             `users:${data.decodedToken.email}`,
@@ -72,12 +75,11 @@ class SocketLogic {
               return callback(null, true);
             }
           );
-          
+
           //Set an property in socket object
           socket.email = data.decodedToken.email;
 
           return callback(null, true);
-
         } catch (error) {
           console.log(error);
           console.log(`Socket ${socket.id} unauthorized.`);
@@ -130,63 +132,27 @@ class SocketLogic {
         console.log("🔥: A user disconnected");
       });
 
-      socket.on("event:logout",async(data)=>{
+      socket.on("event:logout", async (data) => {
         try {
           //Get the token
-          const token = data.token
+          const token = data.token;
 
           //Get the email from token
-          const res = tokenVerify(token)
+          const res = tokenVerify(token);
 
-          if(!res.decodedToken){
-            return console.log("The key from redis could not be deleted")
+          if (!res.decodedToken) {
+            return console.log("The key from redis could not be deleted");
           }
 
           //Delete the key from redis using the email
           await pub.del(`users:${res.decodedToken.email}`);
           socket.disconnect();
+
+          console.log("Logout Successfull");
         } catch (error) {
-          console.log(error)
+          console.log(error);
         }
-
-        
-
-      })
-
-    //   app.post("/logout", cookieChecker, async (req, res) => {
-    //     try {
-    //       if (!req.middlewareRes.success) {
-    //         return res.json({
-    //           message: req.middlewareRes.message,
-    //           success: req.middlewareRes.success,
-    //         });
-    //       }
-
-    //       //Email id of user
-    //       const { decodedToken } = req.middlewareRes;
-    //       console.log(decodedToken.email)
-    //       const response = await pub.del(`users:${decodedToken.email}`);
-    //       socket.disconnect();
-
-    //       if (!response) {
-    //         return res.json({
-    //           message: "The key from redis could not be deleted",
-    //           success: false,
-    //         });
-    //       }
-
-    //       return res.json({
-    //         message: "The user has logged out successfully",
-    //         success: true,
-    //       });
-    //     } catch (error) {
-    //       console.log(error);
-    //       return res.json({
-    //         message: "Cannot log out from backend",
-    //         success: false,
-    //       });
-    //     }
-    //   });
+      });
     });
   }
   get io() {
@@ -194,4 +160,4 @@ class SocketLogic {
   }
 }
 
-module.exports = SocketLogic;
+module.exports = {SocketLogic,pub,sub};
