@@ -3,19 +3,18 @@ import TextField from "@mui/material/TextField";
 import { Button } from "@mui/material";
 import { sendMessage } from "../../utils/DataFetch";
 
-
 export default function ChatArea(props) {
-
   const addToConversation = async () => {
     // const chatContentArea = document.getElementById("chatContent");
-    const message = document.getElementById("outlined-multiline-flexible").value
+    const message = document.getElementById(
+      "outlined-multiline-flexible"
+    ).value;
 
-    const response = await sendMessage(props.email,message)
+    const response = await sendMessage(props.email, message);
 
-    if(response.success){
-      document.getElementById("outlined-multiline-flexible").value = ""
+    if (response.success) {
+      document.getElementById("outlined-multiline-flexible").value = "";
     }
-
   };
 
   return (
@@ -53,8 +52,9 @@ export default function ChatArea(props) {
                 maxRows={4}
                 style={{ width: "800px" }}
               />
-              <Button style={{ backgroundColor: "green", color: "white" }}
-              onClick={addToConversation}
+              <Button
+                style={{ backgroundColor: "green", color: "white" }}
+                onClick={addToConversation}
               >
                 Send
               </Button>

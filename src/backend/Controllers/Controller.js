@@ -3,7 +3,7 @@ const conversationModel = require("../Models/Conversation");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const mongoose = require("mongoose");
-const { pub,sub } = require("../../socket/SocketLogic")
+const { pub, sub } = require("../../socket/SocketLogic");
 
 const login = async (req, res) => {
   try {
@@ -345,8 +345,36 @@ const getUserConversation = async (req, res) => {
       });
     }
 
-    
+    //Conversation storage format "conv:Friend1Email_Friend2Email"
+    //The stored data in Redis is in a list
 
+    let doesConvExist;
+
+    //Check if the conversation exists in redis for both combination of key
+    doesConvExist = await pub.lrange(
+      `conv:${decodedToken.email}_${friendEmail}`,
+      0,
+      -1
+    );
+
+    if (!doesConvExist) {
+      doesConvExist = await pub.lrange(
+        `conv:${friendEmail}_${decodedToken.email}`,
+        -1,
+        0
+      );
+    }
+
+    //If now the conversation exists in Redis ie either of the key combination exists and the length of the conversation array is not zero
+    if (doesConvExist && doesConvExist.length !== 0) {
+      //Return the data from Redis
+      return res.json({
+        message: "Got the Conversation successfully",
+        success: true,
+        conversation: doesConvExist,
+      });
+    }
+    //BUG - The data is not getting parsed properly at frontend
 
     let userConversation = await conversationModel
       .find({
@@ -356,7 +384,7 @@ const getUserConversation = async (req, res) => {
         ],
       })
       .lean();
-    
+
     if (!userConversation && !userConversation.ContentField) {
       return res.json({
         message: "Unable to find Conversation",
@@ -364,8 +392,16 @@ const getUserConversation = async (req, res) => {
       });
     }
 
+    let conversationKey;
+
+    if (userConversation[0].Friend1.equals(userId)) {
+      conversationKey = `conv:${decodedToken.email}_${friendEmail}`;
+    } else {
+      conversationKey = `conv:${friendEmail}_${decodedToken.email}`;
+    }
+
     userConversation[0].ContentField = userConversation[0]?.ContentField?.map(
-      (e) => {
+      async (e) => {
         if (e.sender == userId.toString()) {
           e.sender = "Self";
           e.receiver = "Friend";
@@ -373,15 +409,21 @@ const getUserConversation = async (req, res) => {
           e.sender = "Friend";
           e.receiver = "Self";
         }
+        //Since the conversation does not exist in Redis add it
+        //Push every new object at the end of list in Redis
+        await pub.rpush(conversationKey, JSON.stringify(e));
+
         return e;
       }
     );
 
+    //Return the data
     return res.json({
       message: "Got the Conversation successfully",
       success: true,
       conversation: userConversation[0].ContentField,
     });
+
   } catch (error) {
     console.log(error);
     return res.json({ message: "Could not add as friends", success: false });
