@@ -54,7 +54,7 @@ export const getUserConversation = async (friendEmail)=>{
         return {message:conversation.data.message,success:false}
     }
 
-    return {message:"The conversation was fetched successfully",success:true,conversation:conversation.data.conversation}
+    return {message:conversation.data.message,success:true,conversation:conversation.data.conversation}
 
 }
 

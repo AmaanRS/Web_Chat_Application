@@ -49,8 +49,10 @@ class SocketLogic {
           //Verify it
           const data = tokenVerify(token);
 
-          if(!data || !data.success){
-            return callback({ message: "There is some problem in the token verification" });
+          if (!data || !data.success) {
+            return callback({
+              message: "There is some problem in the token verification",
+            });
           }
 
           //Set a value in redis
@@ -146,6 +148,17 @@ class SocketLogic {
 
           //Delete the key from redis using the email
           await pub.del(`users:${res.decodedToken.email}`);
+
+          //This is an inefficient approach if possible please change this later
+          //Reason for inefficiency -> When one user logs out the keys related to him will get deleted so if his friend is also online he will have to fetch the data from database again rather than from redis
+          //Deleting all the user related keys in Redis
+          const Rediskeys = await pub.keys(`*:${res.decodedToken.email}*`);
+          console.log(Rediskeys);
+          var pipeline = pub.pipeline();
+          Rediskeys.forEach(function (key) {
+            pipeline.del(key);
+          });
+          pipeline.exec();
           socket.disconnect();
 
           console.log("Logout Successfull");
@@ -160,4 +173,4 @@ class SocketLogic {
   }
 }
 
-module.exports = {SocketLogic,pub,sub};
+module.exports = { SocketLogic, pub, sub };

@@ -28,9 +28,18 @@ export default function Main() {
   },[])
 
   const openChat = async (index)=>{
+    try {
       const conv = await getUserConversation(friends[index]?.email)
-      setConvContent(conv.conversation.map(JSON.parse))
+      try {
+        setConvContent(conv.conversation.map(JSON.parse))
+      } catch (error) {
+        setConvContent(conv.conversation)
+      }
       setCurrentChat(index)
+    } catch (error) {
+      console.log(error)
+    }
+      
   }
 
   //Function to render the list of friends

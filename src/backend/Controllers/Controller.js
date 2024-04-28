@@ -369,7 +369,7 @@ const getUserConversation = async (req, res) => {
     if (doesConvExist && doesConvExist.length !== 0) {
       //Return the data from Redis
       return res.json({
-        message: "Got the Conversation successfully",
+        message: "Got the Conversation successfully from Redis",
         success: true,
         conversation: doesConvExist,
       });
@@ -399,28 +399,27 @@ const getUserConversation = async (req, res) => {
       conversationKey = `conv:${friendEmail}_${decodedToken.email}`;
     }
 
-    userConversation[0].ContentField = userConversation[0]?.ContentField?.map(
-      async (e) => {
-        if (e.sender == userId.toString()) {
-          e.sender = "Self";
-          e.receiver = "Friend";
-        } else {
-          e.sender = "Friend";
-          e.receiver = "Self";
-        }
-        //Since the conversation does not exist in Redis add it
-        //Push every new object at the end of list in Redis
-        await pub.rpush(conversationKey, JSON.stringify(e));
+    let conversation = [];
 
-        return e;
+    for (const e of userConversation[0]?.ContentField || []) {
+      if (e.sender == userId.toString()) {
+        e.sender = "Self";
+        e.receiver = "Friend";
+      } else {
+        e.sender = "Friend";
+        e.receiver = "Self";
       }
-    );
+      // Since the conversation does not exist in Redis add it
+      // Push every new object at the end of list in Redis
+      await pub.rpush(conversationKey, JSON.stringify(e));
+      conversation.push(e);
+    }
 
     //Return the data
     return res.json({
-      message: "Got the Conversation successfully",
+      message: "Got the Conversation successfully from database",
       success: true,
-      conversation: userConversation[0].ContentField,
+      conversation: conversation,
     });
   } catch (error) {
     console.log(error);
