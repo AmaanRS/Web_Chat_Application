@@ -57,28 +57,3 @@ export const getUserConversation = async (friendEmail)=>{
     return {message:conversation.data.message,success:true,conversation:conversation.data.conversation}
 
 }
-
-
-export const sendMessage = async (friendEmail,message)=>{
-    const ORIGIN = import.meta.env.VITE_ORIGIN
-
-    const token = await getToken()
-
-    if(!token){
-        return {message:"User is not Authenticated ",success:false}
-    }
-
-    if(!friendEmail){
-        return {message:"Please send friendEmail",success:false}
-    }
-
-    const response = await axios.post(`${ORIGIN}/sendMessage`,{friendEmail:friendEmail,message:message},
-    {headers:{"Authorization" : `Bearer ${token}`}})
-
-    if(!response){
-        return {message:"There was aproblem while getting the conversation",success:false}
-    }
-
-    return {message:"The was sent successfully",success:true}
-
-}

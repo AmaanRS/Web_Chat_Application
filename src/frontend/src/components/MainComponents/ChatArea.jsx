@@ -1,20 +1,19 @@
 import React from "react";
 import TextField from "@mui/material/TextField";
 import { Button } from "@mui/material";
-import { sendMessage } from "../../utils/DataFetch";
+import { useSocket } from '../../context/SocketContext'
 
 export default function ChatArea(props) {
-  const addToConversation = async () => {
+  const { sendMessageTo } = useSocket()
+
+  const addToConversation = () => {
     // const chatContentArea = document.getElementById("chatContent");
     const message = document.getElementById(
       "outlined-multiline-flexible"
     ).value;
 
-    const response = await sendMessage(props.email, message);
-
-    if (response.success) {
-      document.getElementById("outlined-multiline-flexible").value = "";
-    }
+    const response = sendMessageTo(props.email, message);
+    document.getElementById("outlined-multiline-flexible").value = "";
   };
 
   return (

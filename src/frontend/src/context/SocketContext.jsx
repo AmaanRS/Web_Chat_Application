@@ -5,6 +5,13 @@ const socket = io(import.meta.env.VITE_SOCKET_ORIGIN);
 
 const SocketContext = createContext()
 
+export const useSocket = () => {
+    const state = useContext(SocketContext);
+    if (!state) throw new Error(`state is undefined`);
+  
+    return state;
+  };
+
 const SocketProvider = ({children})=>{
     try {
 
@@ -45,7 +52,7 @@ const SocketProvider = ({children})=>{
 
     return(
         // <SocketContext.Provider value={{ sendMessageTo, onMessageRec }}>
-        <SocketContext.Provider value={{  }}>
+        <SocketContext.Provider value={{ sendMessageTo }}>
             {children}
         </SocketContext.Provider>
     )

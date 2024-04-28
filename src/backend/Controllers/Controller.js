@@ -37,13 +37,14 @@ const login = async (req, res) => {
         });
       }
 
-      // I will be creating the jwt token in the backend at set the token using frontend
-
       //Create a jwt token
       let token = jwt.sign({ email: email }, process.env.JWT_SECRET);
 
+      //Did not work for some reason
       //Create a cookie using a token and add it to the response object
       // res.cookie("token",token,{maxAge:60*60*60,httpOnly:true,sameSite: 'None'})
+
+      //Take all the conversations from the database and create a list in Redis which has a key of friends:UserEmail and values of FriendEmail1_FriendEmail2
 
       //Send the message to the frontend that the user is now logged in
       return res.json({
@@ -174,7 +175,7 @@ const getUserData = async (req, res) => {
   }
 };
 
-const getAllUsersEmail = async (req, res) => {
+const  getAllUsersEmail = async (req, res) => {
   try {
     //User is not authenticated
     if (!req.middlewareRes.success) {
@@ -427,68 +428,6 @@ const getUserConversation = async (req, res) => {
   }
 };
 
-const sendMessage = async (req, res) => {
-  try {
-    //User is not authenticated
-    if (!req.middlewareRes.success) {
-      return res.json({
-        message: req.middlewareRes.message,
-        success: req.middlewareRes.success,
-      });
-    }
-
-    //Email id of user
-    const { decodedToken } = req.middlewareRes;
-
-    const { friendEmail, message } = req.body;
-
-    if (!friendEmail) {
-      return res.json({ message: "Provide a friendEmail", success: false });
-    }
-
-    const friendId = (await userModel.findOne({ email: friendEmail }))._id;
-
-    const userId = (await userModel.findOne({ email: decodedToken.email }))._id;
-
-    if (!userId || !friendId) {
-      return res.json({
-        message: "Could not get both the friend and user id from the database",
-        success: false,
-      });
-    }
-
-    const response = await conversationModel.updateOne(
-      {
-        $or: [
-          { Friend1: userId, Friend2: friendId },
-          { Friend2: userId, Friend1: friendId },
-        ],
-      },
-      {
-        $push: {
-          ContentField: {
-            sender: userId,
-            receiver: friendId,
-            message: message,
-          },
-        },
-      }
-    );
-
-    if (!response) {
-      return res.json({
-        message: "Could not add the message to the conversation",
-        success: false,
-      });
-    }
-
-    return res.json({ message: "Message added successfully", success: true });
-  } catch (error) {
-    console.log(error);
-    return res.json({ message: "Could not add as friends", success: false });
-  }
-};
-
 module.exports = {
   login,
   signup,
@@ -497,5 +436,4 @@ module.exports = {
   getAllUsersEmail,
   addFriendBothWays,
   getUserConversation,
-  sendMessage,
 };

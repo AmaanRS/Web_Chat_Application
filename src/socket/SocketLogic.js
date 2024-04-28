@@ -29,9 +29,6 @@ class SocketLogic {
         origin: `http://127.0.0.1:${process.env.FRONTEND_PORT}`,
       },
     });
-
-    //Make this dynamic for each user connections
-    sub.subscribe("MESSAGES");
   }
 
   initListeners() {
@@ -92,6 +89,8 @@ class SocketLogic {
       postAuthenticate: (socket) => {
         console.log(`Socket ${socket.id} authenticated.`);
 
+        //After the Socket is connected take the friends of user from Redis and add the user to each of the rooms created with the names of friends
+
         //On getting a ping from client this code changes the expiration of a value in redis to 30sec if it already exists; ie it renews connection every 25 secs since websocket pings every 25 secs
         socket.conn.on("packet", async (packet) => {
           if (socket.auth && packet.type === "pong") {
@@ -117,9 +116,9 @@ class SocketLogic {
       socket.on("event:send_message", async (data) => {
         console.log(data.message);
         console.log(data.to);
-        //Send the message to the person make this dynamic
-        await pub.publish("MESSAGES", JSON.stringify({ message }));
-        io.to(data.to).emit("onMessageRec", { message: data.message });
+        console.log(socket.email)
+
+        // io.to(data.to).emit("onMessageRec", { message: data.message });
       });
 
       // Check this code and write a logic
@@ -152,8 +151,8 @@ class SocketLogic {
           //This is an inefficient approach if possible please change this later
           //Reason for inefficiency -> When one user logs out the keys related to him will get deleted so if his friend is also online he will have to fetch the data from database again rather than from redis
           //Deleting all the user related keys in Redis
-          const Rediskeys = await pub.keys(`*:${res.decodedToken.email}*`);
-          console.log(Rediskeys);
+          const Rediskeys = await pub.keys(`*:*${res.decodedToken.email}*`);
+          // console.log(Rediskeys);
           var pipeline = pub.pipeline();
           Rediskeys.forEach(function (key) {
             pipeline.del(key);
