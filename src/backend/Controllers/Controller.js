@@ -360,8 +360,8 @@ const getUserConversation = async (req, res) => {
     if (!doesConvExist) {
       doesConvExist = await pub.lrange(
         `conv:${friendEmail}_${decodedToken.email}`,
-        -1,
-        0
+        0,
+        -1
       );
     }
 
@@ -374,7 +374,6 @@ const getUserConversation = async (req, res) => {
         conversation: doesConvExist,
       });
     }
-    //BUG - The data is not getting parsed properly at frontend
 
     let userConversation = await conversationModel
       .find({
@@ -423,7 +422,6 @@ const getUserConversation = async (req, res) => {
       success: true,
       conversation: userConversation[0].ContentField,
     });
-
   } catch (error) {
     console.log(error);
     return res.json({ message: "Could not add as friends", success: false });

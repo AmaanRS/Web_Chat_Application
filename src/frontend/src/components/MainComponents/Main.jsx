@@ -29,8 +29,7 @@ export default function Main() {
 
   const openChat = async (index)=>{
       const conv = await getUserConversation(friends[index]?.email)
-      console.log(JSON.parse(conv.conversation))
-      setConvContent(conv.conversation)
+      setConvContent(conv.conversation.map(JSON.parse))
       setCurrentChat(index)
   }
 
