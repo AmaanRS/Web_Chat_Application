@@ -12,7 +12,7 @@ export default function ChatArea(props) {
       "outlined-multiline-flexible"
     ).value;
 
-    const response = sendMessageTo(props.email, message);
+    const response = sendMessageTo(message,props.email);
     document.getElementById("outlined-multiline-flexible").value = "";
   };
 

@@ -25,6 +25,11 @@ const SocketProvider = ({children})=>{
         socket.emit("event:send_message",{message:message,to:to})
     }
 
+    socket.on("event:onMessageRec",(message)=>{
+        console.log(message)
+    })
+
+
     //SocketAuth emits an unauthorized event if the user is unauthorized which is listened to here
     socket.on('unauthorized', (reason) => {
         console.log('Unauthorized:', reason);
