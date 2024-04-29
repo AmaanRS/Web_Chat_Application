@@ -46,6 +46,42 @@ const login = async (req, res) => {
 
       //Take all the conversations from the database and create a list in Redis which has a key of friends:UserEmail and values of FriendEmail1_FriendEmail2
 
+      //Get the id of user
+      const userId = (await userModel.findOne({ email: email }))._id;
+
+      if (!userId) {
+        return res.json({
+          message: "Could not get user id from the database",
+          success: false,
+        });
+      }
+
+      //Get all the conversations which user is a part of ie all the friends of users
+      const conversations = await conversationModel.find(
+        {
+          $or: [{ Friend1: userId }, { Friend2: userId }],
+        },
+        "Friend1 Friend2"
+      );
+
+      //Add the friends inside redis list
+      const setFriendsInRedis = async () => {
+        for (let index = 0; index < conversations.length; index++) {
+
+          const Friend1Email = (await userModel.findOne({ _id: conversations[index].Friend1 })).email;
+
+          const Friend2Email = (
+            await userModel.findOne({_id: conversations[index].Friend2})
+          ).email;
+
+          await sub.rpush(
+            `friends:${email}`,
+            `${Friend1Email}_${Friend2Email}`
+          );
+        }
+      };
+      await setFriendsInRedis();
+
       //Send the message to the frontend that the user is now logged in
       return res.json({
         message: "You have been logged in successfully",
@@ -175,7 +211,7 @@ const getUserData = async (req, res) => {
   }
 };
 
-const  getAllUsersEmail = async (req, res) => {
+const getAllUsersEmail = async (req, res) => {
   try {
     //User is not authenticated
     if (!req.middlewareRes.success) {
@@ -300,6 +336,12 @@ const addFriendBothWays = async (req, res) => {
       { new: true }
     );
 
+    //Create a new conversation for the friend which was added
+    const isConvCreated = await conversationModel.create({
+      Friend1:User1._id,
+      Friend2:User2._id
+    })
+
     await session.commitTransaction();
     session.endSession();
 
@@ -394,7 +436,7 @@ const getUserConversation = async (req, res) => {
 
     let conversationKey;
 
-    if (userConversation[0].Friend1.equals(userId)) {
+    if (userConversation[0]?.Friend1.equals(userId)) {
       conversationKey = `conv:${decodedToken.email}_${friendEmail}`;
     } else {
       conversationKey = `conv:${friendEmail}_${decodedToken.email}`;

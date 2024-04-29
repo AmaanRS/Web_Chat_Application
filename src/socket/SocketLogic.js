@@ -52,7 +52,7 @@ class SocketLogic {
             });
           }
 
-          //Set a value in redis
+          //Set a value in redis if it does not exist if it does return null with expiration of 30sec
           await pub.set(
             `users:${data.decodedToken.email}`,
             socket.id,
@@ -86,10 +86,19 @@ class SocketLogic {
         }
       },
       //Runs after authenticate function
-      postAuthenticate: (socket) => {
+      postAuthenticate: async (socket) => {
         console.log(`Socket ${socket.id} authenticated.`);
 
         //After the Socket is connected take the friends of user from Redis and add the user to each of the rooms created with the names of friends
+
+        //Get all the friends of user from redis and make rooms of their names
+        const userFriends = await sub.lrange(`friends:${socket.email}`, 0, -1);
+
+        //Join all the rooms with room name as friend's name
+        for (let index = 0; index < userFriends.length; index++) {
+          socket.join(userFriends[index]);
+        }
+        console.log(socket.rooms)
 
         //On getting a ping from client this code changes the expiration of a value in redis to 30sec if it already exists; ie it renews connection every 25 secs since websocket pings every 25 secs
         socket.conn.on("packet", async (packet) => {
@@ -104,7 +113,7 @@ class SocketLogic {
 
         //Delete the value from redis on disconnection
         if (socket.email) {
-          await pub.del(`users:${socket.email}`);
+          await this.cleanUserFromRedis(socket.email)
         }
       },
     });
@@ -116,17 +125,27 @@ class SocketLogic {
       socket.on("event:send_message", async (data) => {
         console.log(data.message);
         console.log(data.to);
-        console.log(socket.email)
+        console.log(socket.email);
 
-        // io.to(data.to).emit("onMessageRec", { message: data.message });
-      });
+        let room;
+        //This is undefined so where will i get the rooms from??
+        //Get the room name from redis
+        console.log(socket.rooms)
+        console.log(socket.rooms.length)
 
-      // Check this code and write a logic
-      sub.on("message", async (channel, message) => {
-        if (channel === "MESSAGES") {
-          console.log("new message from redis", message);
-          io.emit("message", message);
+        for (let index = 0; index < socket.rooms.length; index++) {
+            if(socket.rooms[index] == `${socket.email}_${data.to}`){
+              room = `${socket.email}_${data.to}`
+              break;
+            }else if(socket.rooms[index] == `${data.to}_${socket.email}`){
+              room = `${data.to}_${socket.email}`
+              break;
+            }
         }
+        console.log(room)
+
+        //Emitted an event to the client that the message has been sent to the intended recipient.
+        io.to(room).emit("event:onMessageRec", { message: data.message });
       });
 
       socket.on("disconnect", () => {
@@ -145,19 +164,8 @@ class SocketLogic {
             return console.log("The key from redis could not be deleted");
           }
 
-          //Delete the key from redis using the email
-          await pub.del(`users:${res.decodedToken.email}`);
+          await this.cleanUserFromRedis(res.decodedToken.email)
 
-          //This is an inefficient approach if possible please change this later
-          //Reason for inefficiency -> When one user logs out the keys related to him will get deleted so if his friend is also online he will have to fetch the data from database again rather than from redis
-          //Deleting all the user related keys in Redis
-          const Rediskeys = await pub.keys(`*:*${res.decodedToken.email}*`);
-          // console.log(Rediskeys);
-          var pipeline = pub.pipeline();
-          Rediskeys.forEach(function (key) {
-            pipeline.del(key);
-          });
-          pipeline.exec();
           socket.disconnect();
 
           console.log("Logout Successfull");
@@ -169,6 +177,22 @@ class SocketLogic {
   }
   get io() {
     return this._io;
+  }
+
+  async cleanUserFromRedis(email) {
+    //Delete the key from redis using the email
+    await pub.del(`users:${email}`);
+
+    //This is an inefficient approach if possible please change this later
+    //Reason for inefficiency -> When one user logs out the keys related to him will get deleted so if his friend is also online he will have to fetch the data from database again rather than from redis
+    //Deleting all the user related keys in Redis
+    const Rediskeys = await pub.keys(`*:*${email}*`);
+    // console.log(Rediskeys);
+    var pipeline = pub.pipeline();
+    Rediskeys.forEach(function (key) {
+      pipeline.del(key);
+    });
+    pipeline.exec();
   }
 }
 
