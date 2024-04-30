@@ -3,6 +3,7 @@ import TextField from "@mui/material/TextField";
 import { Button } from "@mui/material";
 import { useSocket } from '../../context/SocketContext'
 import { useConv } from "../../context/ConvContext";
+import { useAuth } from "../../context/AuthContext";
 
 export default function ChatArea(props) {
   const { sendMessageTo } = useSocket();

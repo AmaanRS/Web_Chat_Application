@@ -3,6 +3,9 @@ const Redis = require("ioredis");
 const socketAuth = require("socketio-auth");
 require("dotenv").config();
 const tokenVerify = require("./tokenVerify");
+const userModel = require("../backend/Models/User")
+const conversationModel = require("../backend/Models/Conversation");
+const { setFriendsInRedisFunc } = require("../backend/Controllers/Controller");
 
 //Create a redis client for publishing
 const pub = new Redis({
@@ -189,7 +192,7 @@ class SocketLogic {
 
   async cleanUserFromRedis(email) {
     //Delete the key from redis using the email
-    await pub.del(`users:${email}`);
+    // await pub.del(`users:${email}`);
 
     //This is an inefficient approach if possible please change this later
     //Reason for inefficiency -> When one user logs out the keys related to him will get deleted so if his friend is also online he will have to fetch the data from database again rather than from redis
@@ -198,7 +201,8 @@ class SocketLogic {
     // console.log(Rediskeys);
     var pipeline = pub.pipeline();
     Rediskeys.forEach(function (key) {
-      pipeline.del(key);
+      //Uncomment this in future
+      // pipeline.del(key);
     });
     pipeline.exec();
   }

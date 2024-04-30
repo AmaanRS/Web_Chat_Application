@@ -44,43 +44,7 @@ const login = async (req, res) => {
       //Create a cookie using a token and add it to the response object
       // res.cookie("token",token,{maxAge:60*60*60,httpOnly:true,sameSite: 'None'})
 
-      //Take all the conversations from the database and create a list in Redis which has a key of friends:UserEmail and values of FriendEmail1_FriendEmail2
-
-      //Get the id of user
-      const userId = (await userModel.findOne({ email: email }))._id;
-
-      if (!userId) {
-        return res.json({
-          message: "Could not get user id from the database",
-          success: false,
-        });
-      }
-
-      //Get all the conversations which user is a part of ie all the friends of users
-      const conversations = await conversationModel.find(
-        {
-          $or: [{ Friend1: userId }, { Friend2: userId }],
-        },
-        "Friend1 Friend2"
-      );
-
-      //Add the friends inside redis list
-      const setFriendsInRedis = async () => {
-        for (let index = 0; index < conversations.length; index++) {
-
-          const Friend1Email = (await userModel.findOne({ _id: conversations[index].Friend1 })).email;
-
-          const Friend2Email = (
-            await userModel.findOne({_id: conversations[index].Friend2})
-          ).email;
-
-          await sub.rpush(
-            `friends:${email}`,
-            `${Friend1Email}_${Friend2Email}`
-          );
-        }
-      };
-      await setFriendsInRedis();
+      await setFriendsInRedisFunc(email);
 
       //Send the message to the frontend that the user is now logged in
       return res.json({
@@ -336,11 +300,20 @@ const addFriendBothWays = async (req, res) => {
       { new: true }
     );
 
-    //Create a new conversation for the friend which was added
-    const isConvCreated = await conversationModel.create({
-      Friend1:User1._id,
-      Friend2:User2._id
-    })
+    //Check which email is lexicographically first the add it as Friend1
+    if (decodedToken.email < friendEmail) {
+      //Create a new conversation for the friend which was added
+      const isConvCreated = await conversationModel.create({
+        Friend1: User1._id,
+        Friend2: User2._id,
+      });
+    } else if (friendEmail < decodedToken.email) {
+      //Create a new conversation for the friend which was added
+      const isConvCreated = await conversationModel.create({
+        Friend1: User2._id,
+        Friend2: User1._id,
+      });
+    }
 
     await session.commitTransaction();
     session.endSession();
@@ -389,7 +362,6 @@ const getUserConversation = async (req, res) => {
     }
 
     //Conversation storage format "conv:Friend1Email_Friend2Email"
-    //The stored data in Redis is in a list
 
     let doesConvExist;
 
@@ -418,6 +390,7 @@ const getUserConversation = async (req, res) => {
       });
     }
 
+    //This can be optimized by check which email is lexicographically first then finding it
     let userConversation = await conversationModel
       .find({
         $and: [
@@ -470,6 +443,44 @@ const getUserConversation = async (req, res) => {
   }
 };
 
+const setFriendsInRedisFunc = async (email) => {
+  //Take all the conversations from the database and create a list in Redis which has a key of friends:UserEmail and values of FriendEmail1_FriendEmail2
+
+  //Get the id of user
+  const userId = (await userModel.findOne({ email: email }))._id;
+
+  if (!userId) {
+    return res.json({
+      message: "Could not get user id from the database",
+      success: false,
+    });
+  }
+
+  //Get all the conversations which user is a part of ie all the friends of users
+  const conversations = await conversationModel.find(
+    {
+      $or: [{ Friend1: userId }, { Friend2: userId }],
+    },
+    "Friend1 Friend2"
+  );
+
+  //Add the friends inside redis list
+  const setFriendsInRedis = async () => {
+    for (let index = 0; index < conversations.length; index++) {
+      const Friend1Email = (
+        await userModel.findOne({ _id: conversations[index].Friend1 })
+      ).email;
+
+      const Friend2Email = (
+        await userModel.findOne({ _id: conversations[index].Friend2 })
+      ).email;
+
+      await sub.rpush(`friends:${email}`, `${Friend1Email}_${Friend2Email}`);
+    }
+  };
+  await setFriendsInRedis();
+};
+
 module.exports = {
   login,
   signup,
@@ -478,4 +489,5 @@ module.exports = {
   getAllUsersEmail,
   addFriendBothWays,
   getUserConversation,
+  setFriendsInRedisFunc,
 };
