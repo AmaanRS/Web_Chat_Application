@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect } from 'react';
 import { io } from 'socket.io-client';
 import { getToken } from '../utils/Auth';
 const socket = io(import.meta.env.VITE_SOCKET_ORIGIN);
+import { useConv } from './ConvContext';
 
 const SocketContext = createContext()
 
@@ -14,10 +15,9 @@ export const useSocket = () => {
 
 const SocketProvider = ({children})=>{
     try {
+        const { convContent, setConvContent } = useConv()
 
     let error = null
-    
-
     //Implement sendMessage and onMessageRec functions here and chnage the logic of sending,receiving and displaying message
 
     //Check this
@@ -25,8 +25,12 @@ const SocketProvider = ({children})=>{
         socket.emit("event:send_message",{message:message,to:to})
     }
 
-    socket.on("event:onMessageRec",(message)=>{
-        console.log(message)
+    socket.on("event:onMessageRec",(data)=>{
+        console.log(data)
+        setConvContent([
+            ...convContent,
+            { message:data.message, sender: "Friend", receiver: "Self" }
+        ])
     })
 
 
@@ -53,6 +57,10 @@ const SocketProvider = ({children})=>{
         })
     })()
     },[])
+
+    useEffect(()=>{
+        console.log(convContent)
+    },[convContent])
     
 
     return(

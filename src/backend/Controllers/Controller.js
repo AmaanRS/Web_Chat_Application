@@ -400,7 +400,7 @@ const getUserConversation = async (req, res) => {
       -1
     );
 
-    if (!doesConvExist) {
+    if (doesConvExist.length == 0) {
       doesConvExist = await pub.lrange(
         `conv:${friendEmail}_${decodedToken.email}`,
         0,
