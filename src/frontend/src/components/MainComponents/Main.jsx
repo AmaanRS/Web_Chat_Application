@@ -12,6 +12,7 @@ import { useLoaderData } from 'react-router-dom';
 import ChatArea from './ChatArea';
 import { getUserConversation } from "../../utils/DataFetch"
 import SocketProvider from '../../context/SocketContext';
+import { useConv } from '../../context/ConvContext';
 
 export default function Main() {
 
@@ -20,12 +21,13 @@ export default function Main() {
   //Which friend's chat is open for conversation
   var [ currentChat, setCurrentChat ] = useState(0)
 
-  const [ convContent, setConvContent ] = useState()
+  const { convContent,setConvContent} = useConv()
 
-  useEffect(()=>{
-    console.log(convContent)
-    openChat(0)
-  },[])
+  useEffect(() => {
+      openChat(0);
+      console.log(convContent);
+  }, []);
+  
 
   const openChat = async (index)=>{
     try {
@@ -35,6 +37,7 @@ export default function Main() {
       } catch (error) {
         setConvContent(conv.conversation)
       }
+      console.log(conv.message)
       setCurrentChat(index)
     } catch (error) {
       console.log(error)

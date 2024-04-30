@@ -123,29 +123,37 @@ class SocketLogic {
 
       // Check this code and write a logic
       socket.on("event:send_message", async (data) => {
-        console.log(data.message);
-        console.log(data.to);
-        console.log(socket.email);
 
         let room;
-        //This is undefined so where will i get the rooms from??
+ 
         //Get the room name from redis
-        console.log(socket.rooms)
-        console.log(socket.rooms.length)
+        const friends = await pub.lrange(`friends:${socket.email}`,0,-1)
+        console.log(friends)
 
-        for (let index = 0; index < socket.rooms.length; index++) {
-            if(socket.rooms[index] == `${socket.email}_${data.to}`){
+        for (let index = 0; index < friends.length; index++) {
+            if(friends[index] == `${socket.email}_${data.to}`){
               room = `${socket.email}_${data.to}`
               break;
-            }else if(socket.rooms[index] == `${data.to}_${socket.email}`){
+            }else if(friends[index] == `${data.to}_${socket.email}`){
               room = `${data.to}_${socket.email}`
               break;
             }
         }
-        console.log(room)
+        if(!room){
+          console.log("Could not find the room")
+        }
 
+        // This loic is wrong and cannot be changed by using small fixes so i am changing the conversation naming convention 
+        let payload = {
+          sender:"Self",receiver:"Friend",message:data.message
+        }
+
+        //Save the message to Redis
+        const didSaveInRedis = await pub.rpush(`conv:${room}`,JSON.stringify(payload))
+
+        
         //Emitted an event to the client that the message has been sent to the intended recipient.
-        io.to(room).emit("event:onMessageRec", { message: data.message });
+        socket.to(room).emit("event:onMessageRec", { message: data.message });
       });
 
       socket.on("disconnect", () => {
