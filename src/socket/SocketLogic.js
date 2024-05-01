@@ -234,8 +234,6 @@ class SocketLogic {
         !userFriendsOnline.includes(key.split(":")[1].split("_")[0]) &&
         !userFriendsOnline.includes(key.split(":")[1].split("_")[1])
       ) {
-        console.log("Key for deletion");
-        console.log(key);
         await pub.del(key);
       }
     }
