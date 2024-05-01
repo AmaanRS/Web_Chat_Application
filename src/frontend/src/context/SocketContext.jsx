@@ -36,8 +36,6 @@ const SocketProvider = ({ children }) => {
           });
         });
 
-        //Implement sendMessage and onMessageRec functions here and chnage the logic of sending,receiving and displaying message
-
         newSocket.on("event:onMessageRec", (data) => {
           console.log(data);
           setConvContent((prevContent)=>[

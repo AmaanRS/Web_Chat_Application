@@ -3,7 +3,7 @@ const conversationModel = require("../Models/Conversation");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const mongoose = require("mongoose");
-const { pub, sub } = require("../../socket/SocketLogic");
+const { pub } = require("../../socket/SocketLogic");
 
 const login = async (req, res) => {
   try {
@@ -43,7 +43,6 @@ const login = async (req, res) => {
       //Did not work for some reason
       //Create a cookie using a token and add it to the response object
       // res.cookie("token",token,{maxAge:60*60*60,httpOnly:true,sameSite: 'None'})
-
 
       //Send the message to the frontend that the user is now logged in
       return res.json({
@@ -406,14 +405,6 @@ const getUserConversation = async (req, res) => {
       });
     }
 
-    let conversationKey;
-
-    if (userConversation[0]?.Friend1.equals(userId)) {
-      conversationKey = `conv:${decodedToken.email}_${friendEmail}`;
-    } else {
-      conversationKey = `conv:${friendEmail}_${decodedToken.email}`;
-    }
-
     let conversation = [];
 
     for (const e of userConversation[0]?.ContentField || []) {
@@ -426,7 +417,7 @@ const getUserConversation = async (req, res) => {
       }
       // Since the conversation does not exist in Redis add it
       // Push every new object at the end of list in Redis
-      await pub.rpush(conversationKey, JSON.stringify(e));
+      await pub.rpush(keyString, JSON.stringify(e));
       conversation.push(e);
     }
 

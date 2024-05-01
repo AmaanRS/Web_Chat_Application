@@ -98,8 +98,6 @@ class SocketLogic {
           for (let index = 0; index < userFriends.length; index++) {
             socket.join(userFriends[index]);
           }
-          console.log("Socket rooms");
-          console.log(socket.rooms);
 
           return callback(null, true);
         } catch (error) {
@@ -139,8 +137,6 @@ class SocketLogic {
 
         //Get the room name from redis
         const friends = await pub.lrange(`friends:${socket.email}`, 0, -1);
-        console.log("Friendssssssss");
-        console.log(friends);
 
         for (let index = 0; index < friends.length; index++) {
           if (friends[index] == `${socket.email}_${data.to}`) {
@@ -199,12 +195,7 @@ class SocketLogic {
   }
 
   async cleanUserFromRedis(email) {
-    //This is an inefficient approach if possible please change this later
-    //Reason for inefficiency -> When one user logs out the keys related to him will get deleted so if his friend is also online he will have to fetch the data from database again rather than from redis
-    //Deleting all the user related keys in Redis
-
     // Check if user's friends are online before deleting certain keys
-
     //Get the friends of user
     const userFriends = await sub.lrange(`friends:${email}`, 0, -1);
 
@@ -214,20 +205,16 @@ class SocketLogic {
     //Array for online friends
     let userFriendsOnline = [];
 
-    console.log("All Redis keys")
-    console.log(Rediskeys)
-
     // Iterate through user's friends
     for (let index = 0; index < userFriends?.length; index++) {
-
       //UserFriends are in the form of Friend1Email_Friend2Email so split them
-      let friend = userFriends[index].split("_")
+      let friend = userFriends[index].split("_");
 
       //Remove if any of the part is user who is now logging out
-      if(friend[0] == email){
-        friend = friend[1]
-      }else{
-        friend = friend[0]
+      if (friend[0] == email) {
+        friend = friend[1];
+      } else {
+        friend = friend[0];
       }
 
       // Check if friend's key exists in Rediskeys
@@ -239,15 +226,16 @@ class SocketLogic {
         userFriendsOnline.push(friend);
       }
     }
-    console.log("User Friends Online")
-    console.log(userFriendsOnline)
 
     // Delete keys related to offline friends
     for (let key of Rediskeys) {
       // Check if the key is not related to online friends
-      if (!userFriendsOnline.includes(key.split(":")[1].split("_")[0]) && !userFriendsOnline.includes(key.split(":")[1].split("_")[1])) {
-        console.log("Key for deletion")
-        console.log(key)
+      if (
+        !userFriendsOnline.includes(key.split(":")[1].split("_")[0]) &&
+        !userFriendsOnline.includes(key.split(":")[1].split("_")[1])
+      ) {
+        console.log("Key for deletion");
+        console.log(key);
         await pub.del(key);
       }
     }
