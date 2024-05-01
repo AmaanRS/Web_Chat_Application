@@ -7,9 +7,8 @@ import AccountCircle from "@mui/icons-material/AccountCircle";
 import MenuItem from "@mui/material/MenuItem";
 import Menu from "@mui/material/Menu";
 import { useNavigate } from "react-router-dom";
-import { getToken } from "../../utils/Auth";
+import { getToken, logoutUsingCookies } from "../../utils/Auth";
 import { getSocket } from "../../context/SocketContext";
-import Cookies from "js-cookie";
 
 export default function MenuAppBar(props) {
   const [anchorEl, setAnchorEl] = React.useState(null);
@@ -40,10 +39,7 @@ export default function MenuAppBar(props) {
       //Emit an socket event
       socket.emit("event:logout", { token: token });
 
-      //Remove the cookie from the client
-      //If the cookie is removed or not it does not give any thing in response
-      //It means that even if the removing of cookie fails it won't go to error block or return null or undefined - docs of js-Cookie
-      Cookies.remove("token", { expires: 1, path: "/" });
+      logoutUsingCookies()
 
       navigate("/", { replace: true });
       

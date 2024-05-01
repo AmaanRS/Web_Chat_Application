@@ -3,7 +3,6 @@ import TextField from "@mui/material/TextField";
 import { Button } from "@mui/material";
 import { useSocket } from '../../context/SocketContext'
 import { useConv } from "../../context/ConvContext";
-import { useAuth } from "../../context/AuthContext";
 
 export default function ChatArea(props) {
   const { sendMessageTo } = useSocket();
@@ -14,12 +13,12 @@ export default function ChatArea(props) {
     try {
 
       // Send message and wait for response
-      const response = await sendMessageTo(message, props.email);
+      const response = await sendMessageTo(message, props.Friendemail);
 
       // Update conversation state
-      setConvContent([
-        ...convContent,
-        { message:message, sender: "Self", receiver: "Friend" }
+      setConvContent((prevContent)=>[
+        ...prevContent,
+        { message:message, sender: props.SelfEmail, receiver: props.Friendemail }
       ])
 
       // Clear input field
@@ -34,17 +33,17 @@ export default function ChatArea(props) {
 
   return (
     <>
-      {props.email && (
+      {props.Friendemail && (
         <>
           Chat area
-          {props.email}
+          {props.Friendemail}
           <div
             id="chatArea"
             style={{ display: "flex", flexDirection: "column" }}
           >
             <div style={{ height: "500px" }} id="chatContent">
-              {props.conversation?.map((e, index) => {
-                return e.sender == "Self" ? (
+              {convContent?.map((e, index) => {
+                return e.sender == props.SelfEmail ? (
                   <div
                     key={index}
                     style={{ display: "flex", justifyContent: "flex-end" }}

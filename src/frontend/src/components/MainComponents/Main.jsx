@@ -84,7 +84,7 @@ export default function Main() {
             <Container disableGutters>
               <Box sx={{height:"100vh", overflowY:"scroll"}} >
                 <TitleBar email={friends[currentChat]?.email}/>
-                  <ChatArea email={friends[currentChat]?.email} conversation={convContent}/>
+                  <ChatArea Friendemail={friends[currentChat]?.email}SelfEmail={email} conversation={convContent}/>
               </Box>
             </Container>
           </Grid>

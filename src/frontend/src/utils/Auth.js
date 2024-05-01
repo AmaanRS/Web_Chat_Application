@@ -61,3 +61,13 @@ export const getToken = async () => {
   }
 };
 
+export const logoutUsingCookies = () => {
+  try {
+    //Remove the cookie from the client
+    //If the cookie is removed or not it does not give any thing in response
+    //It means that even if the removing of cookie fails it won't go to error block or return null or undefined - docs of js-Cookie
+    Cookies.remove("token", { expires: 1, path: "/" });
+  } catch (error) {
+    console.log(error)
+  }
+};

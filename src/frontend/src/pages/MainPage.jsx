@@ -1,6 +1,7 @@
 import { useEffect,lazy } from 'react'
 //Lazyloaded this component because of SocketContext
-const Main = lazy(()=>import('../components/MainComponents/Main'))
+// const Main = lazy(()=>import('../components/MainComponents/Main'))
+import Main from "../components/MainComponents/Main"
 import { getToken, isLogin } from '../utils/Auth'
 import { useLoaderData, useNavigate } from 'react-router-dom'
 import axios from 'axios'

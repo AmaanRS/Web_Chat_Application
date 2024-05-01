@@ -1,83 +1,99 @@
-import { createContext, useContext, useEffect } from 'react';
-import { io } from 'socket.io-client';
-import { getToken } from '../utils/Auth';
-const socket = io(import.meta.env.VITE_SOCKET_ORIGIN);
-import { useConv } from './ConvContext';
+import { createContext, useContext, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { io } from "socket.io-client";
+import { getToken, logoutUsingCookies } from "../utils/Auth";
+import { useConv } from "./ConvContext";
 
-const SocketContext = createContext()
+const SocketContext = createContext();
 
 export const useSocket = () => {
-    const state = useContext(SocketContext);
-    if (!state) throw new Error(`state is undefined`);
-  
-    return state;
+  const state = useContext(SocketContext);
+  if (!state) throw new Error(`state is undefined`);
+
+  return state;
+};
+
+let socketInstance = null;
+
+const SocketProvider = ({ children }) => {
+  const [socket, setSocket] = useState(null);
+  const { convContent, setConvContent } = useConv();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const initializeSocket = async () => {
+      try {
+        const newSocket = io(import.meta.env.VITE_SOCKET_ORIGIN);
+        console.log("Socket connection request sent from client");
+
+        const token = await getToken();
+        console.log(token);
+
+        newSocket.on("connect", () => {
+          console.log("WebSocket connected successfully");
+          newSocket.emit("authentication", {
+            token: token,
+          });
+        });
+
+        //Implement sendMessage and onMessageRec functions here and chnage the logic of sending,receiving and displaying message
+
+        newSocket.on("event:onMessageRec", (data) => {
+          console.log(data);
+          setConvContent((prevContent)=>[
+            ...prevContent,
+            { message: data.message, sender: data.sender, receiver: data.receiver},
+          ]);
+        });
+
+        newSocket.on("unauthorized", (reason) => {
+          console.log("Unauthorized:", reason);
+          newSocket.disconnect();
+          logoutUsingCookies();
+          navigate("/", { replace: true });
+        });
+
+        setSocket(newSocket);
+        socketInstance = newSocket;
+      } catch (error) {
+        console.error("Error initializing socket:", error);
+      }
+    };
+
+    initializeSocket();
+
+    // Clean up
+    return () => {
+      if (socket) {
+        console.log("Cleaning up socket");
+        socket.removeAllListeners();
+        socket.disconnect();
+        setSocket(null);
+      }
+    };
+  }, []);
+
+  if (!socket) {
+    return null; // or return a loading indicator
+  }
+
+  const sendMessageTo = (message, to) => {
+    socket.emit("event:send_message", { message: message, to: to });
   };
 
-const SocketProvider = ({children})=>{
-    try {
-        const { convContent, setConvContent } = useConv()
-
-    let error = null
-    //Implement sendMessage and onMessageRec functions here and chnage the logic of sending,receiving and displaying message
-
-    //Check this
-    const sendMessageTo = (message,to)=>{
-        socket.emit("event:send_message",{message:message,to:to})
-    }
-
-    socket.on("event:onMessageRec",(data)=>{
-        console.log(data)
-        setConvContent([
-            ...convContent,
-            { message:data.message, sender: "Friend", receiver: "Self" }
-        ])
-    })
-
-
-    //SocketAuth emits an unauthorized event if the user is unauthorized which is listened to here
-    socket.on('unauthorized', (reason) => {
-        console.log('Unauthorized:', reason);
-    
-        error = reason.message;
-    
-        socket.disconnect();
-    });
-
-    useEffect(()=>{
-        (async function c() {
-
-            const token = await getToken()
-            console.log(token)
-            
-            socket.on("connect",()=>{
-            console.log("WebSocket connected successfully")
-            socket.emit('authentication', {
-                token: token
-            });
-        })
-    })()
-    },[])
-
-    useEffect(()=>{
-        console.log(convContent)
-    },[convContent])
-    
-
-    return(
-        // <SocketContext.Provider value={{ sendMessageTo, onMessageRec }}>
-        <SocketContext.Provider value={{ sendMessageTo }}>
-            {children}
-        </SocketContext.Provider>
-    )
-        
-    } catch (error) {
-        console.error("Error in SocketProvider:", error);
-        return null;
-    }
-    
-}
+  return (
+    <SocketContext.Provider value={{ sendMessageTo }}>
+      {children}
+    </SocketContext.Provider>
+  );
+};
 
 //Export the socket variable as a function
-export const getSocket = () => socket;
+export const getSocket = () => {
+  if (!socketInstance) {
+    throw new Error("Socket is not initialized");
+  }
+  return socketInstance;
+};
 
-export default SocketProvider
+export default SocketProvider;

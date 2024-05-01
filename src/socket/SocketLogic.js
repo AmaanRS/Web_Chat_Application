@@ -3,9 +3,9 @@ const Redis = require("ioredis");
 const socketAuth = require("socketio-auth");
 require("dotenv").config();
 const tokenVerify = require("./tokenVerify");
-const userModel = require("../backend/Models/User")
-const conversationModel = require("../backend/Models/Conversation");
-const { setFriendsInRedisFunc } = require("../backend/Controllers/Controller");
+const userModel = require("../socket/Models/User");
+const conversationModel = require("../socket/Models/Conversation");
+const mongoose = require("mongoose");
 
 //Create a redis client for publishing
 const pub = new Redis({
@@ -81,6 +81,26 @@ class SocketLogic {
           //Set an property in socket object
           socket.email = data.decodedToken.email;
 
+          //Did not put this into postAuthenticate because for some reason postAuthenticate runs twice
+          await mongoose.connect("mongodb://localhost:27017");
+          await this.setFriendsInRedisFunc(socket.email);
+
+          //After the Socket is connected take the friends of user from Redis and add the user to each of the rooms created with the names of friends
+
+          //Get all the friends of user from redis and make rooms of their names
+          const userFriends = await sub.lrange(
+            `friends:${socket.email}`,
+            0,
+            -1
+          );
+
+          //Join all the rooms with room name as friend's name
+          for (let index = 0; index < userFriends.length; index++) {
+            socket.join(userFriends[index]);
+          }
+          console.log("Socket rooms");
+          console.log(socket.rooms);
+
           return callback(null, true);
         } catch (error) {
           console.log(error);
@@ -92,17 +112,6 @@ class SocketLogic {
       postAuthenticate: async (socket) => {
         console.log(`Socket ${socket.id} authenticated.`);
 
-        //After the Socket is connected take the friends of user from Redis and add the user to each of the rooms created with the names of friends
-
-        //Get all the friends of user from redis and make rooms of their names
-        const userFriends = await sub.lrange(`friends:${socket.email}`, 0, -1);
-
-        //Join all the rooms with room name as friend's name
-        for (let index = 0; index < userFriends.length; index++) {
-          socket.join(userFriends[index]);
-        }
-        console.log(socket.rooms)
-
         //On getting a ping from client this code changes the expiration of a value in redis to 30sec if it already exists; ie it renews connection every 25 secs since websocket pings every 25 secs
         socket.conn.on("packet", async (packet) => {
           if (socket.auth && packet.type === "pong") {
@@ -112,55 +121,54 @@ class SocketLogic {
       },
       //Runs when socket gets disconnected
       disconnect: async (socket) => {
-        console.log(`Socket ${socket.id} disconnected.`);
+        console.log(`Socket ${socket.id} disconnectedddd.`);
 
         //Delete the value from redis on disconnection
         if (socket.email) {
-          await this.cleanUserFromRedis(socket.email)
+          await this.cleanUserFromRedis(socket.email);
         }
       },
     });
 
-    io.on("connect", (socket) => {
+    io.on("connect", async (socket) => {
       console.log(`⚡: ${socket.id} user just connected!`);
 
       // Check this code and write a logic
       socket.on("event:send_message", async (data) => {
-
         let room;
- 
+
         //Get the room name from redis
-        const friends = await pub.lrange(`friends:${socket.email}`,0,-1)
-        console.log(friends)
+        const friends = await pub.lrange(`friends:${socket.email}`, 0, -1);
+        console.log("Friendssssssss")
+        console.log(friends);
 
         for (let index = 0; index < friends.length; index++) {
-            if(friends[index] == `${socket.email}_${data.to}`){
-              room = `${socket.email}_${data.to}`
-              break;
-            }else if(friends[index] == `${data.to}_${socket.email}`){
-              room = `${data.to}_${socket.email}`
-              break;
-            }
+          if (friends[index] == `${socket.email}_${data.to}`) {
+            room = `${socket.email}_${data.to}`;
+            break;
+          } else if (friends[index] == `${data.to}_${socket.email}`) {
+            room = `${data.to}_${socket.email}`;
+            break;
+          }
         }
-        if(!room){
-          console.log("Could not find the room")
+        if (!room) {
+          console.log("Could not find the room");
         }
 
-        // This loic is wrong and cannot be changed by using small fixes so i am changing the conversation naming convention 
         let payload = {
-          sender:"Self",receiver:"Friend",message:data.message
-        }
+          sender: socket.email,
+          receiver: data.to,
+          message: data.message,
+        };
 
         //Save the message to Redis
-        const didSaveInRedis = await pub.rpush(`conv:${room}`,JSON.stringify(payload))
+        const didSaveInRedis = await pub.rpush(
+          `conv:${room}`,
+          JSON.stringify(payload)
+        );
 
-        
         //Emitted an event to the client that the message has been sent to the intended recipient.
-        socket.to(room).emit("event:onMessageRec", { message: data.message });
-      });
-
-      socket.on("disconnect", () => {
-        console.log("🔥: A user disconnected");
+        socket.to(room).emit("event:onMessageRec", payload);
       });
 
       socket.on("event:logout", async (data) => {
@@ -175,7 +183,7 @@ class SocketLogic {
             return console.log("The key from redis could not be deleted");
           }
 
-          await this.cleanUserFromRedis(res.decodedToken.email)
+          await this.cleanUserFromRedis(res.decodedToken.email);
 
           socket.disconnect();
 
@@ -197,15 +205,55 @@ class SocketLogic {
     //This is an inefficient approach if possible please change this later
     //Reason for inefficiency -> When one user logs out the keys related to him will get deleted so if his friend is also online he will have to fetch the data from database again rather than from redis
     //Deleting all the user related keys in Redis
+
+    //Check if user's friends are online if yes then dont delete
     const Rediskeys = await pub.keys(`*:*${email}*`);
     // console.log(Rediskeys);
     var pipeline = pub.pipeline();
     Rediskeys.forEach(function (key) {
-      //Uncomment this in future
-      // pipeline.del(key);
+      pipeline.del(key);
     });
     pipeline.exec();
   }
+
+  //Try adding this in getUserData in controller
+  setFriendsInRedisFunc = async (email) => {
+    //Take all the conversations from the database and create a list in Redis which has a key of friends:UserEmail and values of FriendEmail1_FriendEmail2
+
+    //Get the id of user
+    const userId = (await userModel.findOne({ email: email }))._id;
+
+    if (!userId) {
+      return res.json({
+        message: "Could not get user id from the database",
+        success: false,
+      });
+    }
+
+    //Get all the conversations which user is a part of ie all the friends of users
+    const conversations = await conversationModel.find(
+      {
+        $or: [{ Friend1: userId }, { Friend2: userId }],
+      },
+      "Friend1 Friend2"
+    );
+
+    console.log("This is conversations");
+    console.log(conversations);
+
+    //Add the friends inside redis list
+    for (let index = 0; index < conversations.length; index++) {
+      const Friend1Email = (
+        await userModel.findOne({ _id: conversations[index].Friend1 })
+      ).email;
+
+      const Friend2Email = (
+        await userModel.findOne({ _id: conversations[index].Friend2 })
+      ).email;
+
+      await sub.rpush(`friends:${email}`, `${Friend1Email}_${Friend2Email}`);
+    }
+  };
 }
 
 module.exports = { SocketLogic, pub, sub };
