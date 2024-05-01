@@ -363,21 +363,21 @@ const getUserConversation = async (req, res) => {
     //Conversation storage format "conv:Friend1Email_Friend2Email"
 
     let doesConvExist;
+    let keyString;
 
     //Check if the conversation exists in redis for both combination of key
+
+    if(decodedToken.email < friendEmail){
+      keyString = `conv:${decodedToken.email}_${friendEmail}`
+    }else{
+      keyString = `conv:${friendEmail}_${decodedToken.email}`
+    }
+
     doesConvExist = await pub.lrange(
-      `conv:${decodedToken.email}_${friendEmail}`,
+      keyString,
       0,
       -1
     );
-
-    if (doesConvExist.length == 0) {
-      doesConvExist = await pub.lrange(
-        `conv:${friendEmail}_${decodedToken.email}`,
-        0,
-        -1
-      );
-    }
 
     //If now the conversation exists in Redis ie either of the key combination exists and the length of the conversation array is not zero
     if (doesConvExist && doesConvExist.length !== 0) {
