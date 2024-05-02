@@ -23,7 +23,10 @@ const SocketProvider = ({ children }) => {
   useEffect(() => {
     const initializeSocket = async () => {
       try {
-        const newSocket = io(import.meta.env.VITE_SOCKET_ORIGIN);
+        const newSocket = io(import.meta.env.VITE_SOCKET_ORIGIN, {
+          // Timeout in milliseconds for the connection to be established (default is 20000)
+          timeout: 300000,
+        });
         console.log("Socket connection request sent from client");
 
         const token = await getToken();
@@ -38,9 +41,13 @@ const SocketProvider = ({ children }) => {
 
         newSocket.on("event:onMessageRec", (data) => {
           console.log(data);
-          setConvContent((prevContent)=>[
+          setConvContent((prevContent) => [
             ...prevContent,
-            { message: data.message, sender: data.sender, receiver: data.receiver},
+            {
+              message: data.message,
+              sender: data.sender,
+              receiver: data.receiver,
+            },
           ]);
         });
 

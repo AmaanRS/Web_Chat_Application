@@ -7,8 +7,6 @@ const { startConsumingMessages, produceMessage } = require("./KafkaLogic")
 async function init() {
   try {
 
-    await startConsumingMessages()
-
     const socketLogic = new SocketLogic();
 
     //Create a http server
@@ -22,6 +20,16 @@ async function init() {
     });
 
     socketLogic.initListeners();
+
+    await startConsumingMessages()
+
+    // let payload = {
+    //   message:"Hiii this is amaan shaikh",
+    //   sender:ObjectId("65c6468bb9c60e70e63a1d28"),
+    //   receiver:ObjectId("65c64697b9c60e70e63a1d2a")
+    // }
+
+    // await produceMessage(JSON.stringify(payload))
 
   } catch (error) {
     console.log(error)

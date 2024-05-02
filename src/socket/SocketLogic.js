@@ -6,6 +6,7 @@ const tokenVerify = require("./tokenVerify");
 const userModel = require("../socket/Models/User");
 const conversationModel = require("../socket/Models/Conversation");
 const mongoose = require("mongoose");
+const { produceMessage } = require("./KafkaLogic");
 
 //Create a redis client for publishing
 const pub = new Redis({
@@ -31,6 +32,10 @@ class SocketLogic {
         allowedHeaders: ["*"],
         origin: `http://127.0.0.1:${process.env.FRONTEND_PORT}`,
       },
+      // Timeout in milliseconds for receiving the ping from the client (default is 5000 ie 5sec)
+      pingTimeout:100000,
+      pingInterval: 250000 // Interval in milliseconds to send ping messages to the client (default is 25000)
+
     });
   }
 
@@ -133,6 +138,9 @@ class SocketLogic {
 
       // Check this code and write a logic
       socket.on("event:send_message", async (data) => {
+
+        try {
+
         let room;
 
         //Get the room name from redis
@@ -165,6 +173,13 @@ class SocketLogic {
 
         //Emitted an event to the client that the message has been sent to the intended recipient.
         socket.to(room).emit("event:onMessageRec", payload);
+
+        await produceMessage(JSON.stringify(payload))
+
+      } catch (error) {
+          console.log(error)
+      }
+
       });
 
       socket.on("event:logout", async (data) => {
