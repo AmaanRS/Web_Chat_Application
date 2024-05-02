@@ -32,6 +32,9 @@ class SocketLogic {
         origin: `http://127.0.0.1:${process.env.FRONTEND_PORT}`,
       },
     });
+
+    //Subscribe to message ie every new socket server created will subscribe to "MESSAGES"
+    sub.subscribe("MESSAGES");
   }
 
   initListeners() {
@@ -88,7 +91,7 @@ class SocketLogic {
           //After the Socket is connected take the friends of user from Redis and add the user to each of the rooms created with the names of friends
 
           //Get all the friends of user from redis and make rooms of their names
-          const userFriends = await sub.lrange(
+          const userFriends = await pub.lrange(
             `friends:${socket.email}`,
             0,
             -1
@@ -133,39 +136,44 @@ class SocketLogic {
 
       // Check this code and write a logic
       socket.on("event:send_message", async (data) => {
-        let room;
+        // let room;
 
-        //Get the room name from redis
-        const friends = await pub.lrange(`friends:${socket.email}`, 0, -1);
+        // //Get the room name from redis
+        // const friends = await pub.lrange(`friends:${socket.email}`, 0, -1);
 
-        for (let index = 0; index < friends.length; index++) {
-          if (friends[index] == `${socket.email}_${data.to}`) {
-            room = `${socket.email}_${data.to}`;
-            break;
-          } else if (friends[index] == `${data.to}_${socket.email}`) {
-            room = `${data.to}_${socket.email}`;
-            break;
-          }
-        }
-        if (!room) {
-          console.log("Could not find the room");
-        }
+        // for (let index = 0; index < friends.length; index++) {
+        //   if (friends[index] == `${socket.email}_${data.to}`) {
+        //     room = `${socket.email}_${data.to}`;
+        //     break;
+        //   } else if (friends[index] == `${data.to}_${socket.email}`) {
+        //     room = `${data.to}_${socket.email}`;
+        //     break;
+        //   }
+        // }
+        // if (!room) {
+        //   console.log("Could not find the room");
+        // }
 
         let payload = {
           sender: socket.email,
           receiver: data.to,
           message: data.message,
         };
+        console.log("Inside event:sendMessagesssss");
 
-        //Save the message to Redis
-        const didSaveInRedis = await pub.rpush(
-          `conv:${room}`,
-          JSON.stringify(payload)
-        );
+        // //Save the message to Redis
+        // const didSaveInRedis = await pub.rpush(
+        //   `conv:${room}`,
+        //   JSON.stringify(payload)
+        // );
 
-        //Emitted an event to the client that the message has been sent to the intended recipient.
-        socket.to(room).emit("event:onMessageRec", payload);
+        //Publish the message to Redis
+        await pub.publish("MESSAGES", JSON.stringify(payload));
+
+        // //Emitted an event to the client that the message has been sent to the intended recipient.
+        // socket.to(room).emit("event:onMessageRec", payload);
       });
+      this.calll(socket)
 
       socket.on("event:logout", async (data) => {
         try {
@@ -193,11 +201,11 @@ class SocketLogic {
   get io() {
     return this._io;
   }
-
+  
   async cleanUserFromRedis(email) {
     // Check if user's friends are online before deleting certain keys
     //Get the friends of user
-    const userFriends = await sub.lrange(`friends:${email}`, 0, -1);
+    const userFriends = await pub.lrange(`friends:${email}`, 0, -1);
 
     //Get all the keys in Redis
     const Rediskeys = await pub.keys(`*`);
@@ -274,9 +282,47 @@ class SocketLogic {
         await userModel.findOne({ _id: conversations[index].Friend2 })
       ).email;
 
-      await sub.rpush(`friends:${email}`, `${Friend1Email}_${Friend2Email}`);
+      await pub.rpush(`friends:${email}`, `${Friend1Email}_${Friend2Email}`);
     }
   };
+
+  calll(socket) {
+    sub.on("message", async (channel, payload) => {
+      console.log("Inside sub.onnnnnnnnnnn");
+      if (channel === "MESSAGES") {
+        payload = JSON.parse(payload);
+        console.log("New message from redis", payload);
+        let room;
+
+        //Get the room name from redis
+        const friends = await pub.lrange(`friends:${payload.sender}`, 0, -1);
+
+        for (let index = 0; index < friends.length; index++) {
+          if (friends[index] == `${payload.sender}_${payload.receiver}`) {
+            room = `${payload.sender}_${payload.receiver}`;
+            break;
+          } else if (
+            friends[index] == `${payload.receiver}_${payload.sender}`
+          ) {
+            room = `${payload.receiver}_${payload.sender}`;
+            break;
+          }
+        }
+        if (!room) {
+          console.log("Could not find the room");
+        }
+
+        //Save the message to Redis
+        const didSaveInRedis = await pub.rpush(
+          `conv:${room}`,
+          JSON.stringify(payload)
+        );
+
+        //Emitted an event to the client that the message has been sent to the intended recipient.
+        socket.to(room).emit("event:onMessageRec", payload);
+      }
+    });
+  }
 }
 
-module.exports = { SocketLogic, pub, sub };
+module.exports = { SocketLogic, pub };

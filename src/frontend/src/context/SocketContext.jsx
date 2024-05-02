@@ -71,11 +71,16 @@ const SocketProvider = ({ children }) => {
     };
   }, []);
 
+  useEffect(()=>{
+    console.log(convContent)
+  },[convContent])
+
   if (!socket) {
     return null; // or return a loading indicator
   }
 
   const sendMessageTo = (message, to) => {
+    console.log("SendMessage Toooooooooo")
     socket.emit("event:send_message", { message: message, to: to });
   };
 
