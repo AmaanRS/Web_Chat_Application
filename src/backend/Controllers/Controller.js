@@ -380,6 +380,10 @@ const getUserConversation = async (req, res) => {
 
     //If now the conversation exists in Redis ie either of the key combination exists and the length of the conversation array is not zero
     if (doesConvExist && doesConvExist.length !== 0) {
+
+        //Remove expiration from conv
+        await pub.persist(keyString)
+
       //Return the data from Redis
       return res.json({
         message: "Got the Conversation successfully from Redis",

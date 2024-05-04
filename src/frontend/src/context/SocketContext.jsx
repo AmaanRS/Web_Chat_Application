@@ -23,20 +23,23 @@ const SocketProvider = ({ children }) => {
   useEffect(() => {
     const initializeSocket = async () => {
       try {
-        const newSocket = io(import.meta.env.VITE_SOCKET_ORIGIN, {
-          // Timeout in milliseconds for the connection to be established (default is 20000)
-          timeout: 300000,
-        });
-        console.log("Socket connection request sent from client");
 
         const token = await getToken();
         console.log(token);
 
+        console.log("Socket connection request sent from client");
+
+        const newSocket = io(import.meta.env.VITE_SOCKET_ORIGIN,{
+          auth:{
+            token : token
+          }
+        });
+
         newSocket.on("connect", () => {
           console.log("WebSocket connected successfully");
-          newSocket.emit("authentication", {
-            token: token,
-          });
+          // newSocket.emit("authentication", {
+          //   token: token,
+          // });
         });
 
         newSocket.on("event:onMessageRec", (data) => {
@@ -51,12 +54,19 @@ const SocketProvider = ({ children }) => {
           ]);
         });
 
-        newSocket.on("unauthorized", (reason) => {
-          console.log("Unauthorized:", reason);
-          newSocket.disconnect();
+        // newSocket.on("unauthorized", (reason) => {
+        //   console.log("Unauthorized:", reason);
+        //   newSocket.disconnect();
+        //   logoutUsingCookies();
+        //   navigate("/", { replace: true });
+        // });
+
+        newSocket.on("connect_error",(error)=>{
+          console.log(error)
           logoutUsingCookies();
           navigate("/", { replace: true });
-        });
+        })
+
 
         setSocket(newSocket);
         socketInstance = newSocket;
