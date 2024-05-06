@@ -4,8 +4,6 @@ import { homeAction,homeLoader } from './pages/HomePage';
 import HomePage from './pages/HomePage';
 import MainPage from './pages/MainPage';
 import { mainLoader } from './pages/MainPage'
-import AddFriendPage from './pages/AddFriendPage'
-import { addFriendLoader } from './pages/AddFriendPage';
 
 function App() {
 
@@ -26,11 +24,6 @@ function App() {
           element:<MainPage />,
           loader:mainLoader
         },
-        {
-          path:"addFriend",
-          element:<AddFriendPage/>,
-          loader:addFriendLoader
-        }
       ]
     }
   ])

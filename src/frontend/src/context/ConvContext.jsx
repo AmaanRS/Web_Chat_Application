@@ -8,7 +8,7 @@ export const useConv = ()=>{
     if (!state) throw new Error(`state is undefined`);
   
     return state;
-} 
+}
 
 export default function ConvProvider({children}) {
     try {

@@ -7,7 +7,7 @@ const userModel = require("../socket/Models/User");
 const conversationModel = require("../socket/Models/Conversation");
 const jwt = require("jsonwebtoken");
 const mongoose = require("mongoose");
-// const { produceMessage } = require("./KafkaLogic");
+const { produceMessage } = require("./KafkaLogic");
 
 //Create a redis client for publishing
 const pub = new Redis({
@@ -63,7 +63,6 @@ class SocketLogic {
     //Check if user already exist before connection
     io.use(async (socket, next) => {
       try {
-
         const doesExist = await pub.get(`users:${socket.email}`);
         if (doesExist) {
           return next(
@@ -95,11 +94,9 @@ class SocketLogic {
       }
 
       console.log("Value set successfully in redis:", result);
-      // Handle the case when the value is successfully set in Redis
 
-      //Did not put this into postAuthenticate because for some reason postAuthenticate runs twice
       await mongoose.connect("mongodb://localhost:27017");
-      await this.setFriendsInRedisFunc(socket.email);
+      await SocketLogic.setFriendsInRedisFunc(socket.email);
 
       //After the Socket is connected take the friends of user from Redis and add the user to each of the rooms created with the names of friends
 
@@ -118,7 +115,6 @@ class SocketLogic {
         }
       });
 
-      // Check this code and write a logic
       socket.on("event:send_message", async (data) => {
         try {
           let room;
@@ -154,7 +150,8 @@ class SocketLogic {
           //Emitted an event to the client that the message has been sent to the intended recipient.
           socket.to(room).emit("event:onMessageRec", payload);
 
-          // await produceMessage(JSON.stringify(payload))
+          //Send the message to database via kafka
+          await produceMessage(JSON.stringify(payload))
         } catch (error) {
           console.log(error);
         }
@@ -240,10 +237,10 @@ class SocketLogic {
         !userFriendsOnline.includes(key.split(":")[1].split("_")[0]) &&
         !userFriendsOnline.includes(key.split(":")[1].split("_")[1])
       ) {
-        if(key.split(":")[0] == "conv" || key.split(":")[0] == "friends"){
-          console.log(key)
-          await pub.expire(key,"20");
-        }else{
+        if (key.split(":")[0] == "conv" || key.split(":")[0] == "friends") {
+          console.log(key);
+          await pub.expire(key, "30");
+        } else {
           await pub.del(key);
         }
       }
@@ -251,50 +248,50 @@ class SocketLogic {
   }
 
   //Try adding this in getUserData in controller
-  setFriendsInRedisFunc = async (email) => {
+  static setFriendsInRedisFunc = async (email) => {
     //Take all the conversations from the database and create a list in Redis which has a key of friends:UserEmail and values of FriendEmail1_FriendEmail2
 
-    //If friends already exists in redis take it from there,did 0 to 1 to save computational costs
-    const didFriends = await pub.lrange(`friends:${email}`,0,1)
-    console.log(didFriends)
+      //If friends already exists in redis take it from there,did 0 to 1 to save computational costs
+      const didFriends = await pub.lrange(`friends:${email}`, 0, 1);
+      console.log(didFriends);
 
-    if(didFriends.length != 0){
-      //Remove the expiration from the friends key
-      await pub.persist(`friends:${email}`)
-      return
-    }
+      if (didFriends.length != 0) {
+        //Remove the expiration from the friends key
+        await pub.persist(`friends:${email}`);
+        return;
+      }
 
-    //Get the id of user
-    const userId = (await userModel.findOne({ email: email }))._id;
+      //Get the id of user
+      const userId = (await userModel.findOne({ email: email }))._id;
 
-    if (!userId) {
-      return res.json({
-        message: "Could not get user id from the database",
-        success: false,
-      });
-    }
+      if (!userId) {
+        return res.json({
+          message: "Could not get user id from the database",
+          success: false,
+        });
+      }
 
-    //Get all the conversations which user is a part of ie all the friends of users
-    const conversations = await conversationModel.find(
-      {
-        $or: [{ Friend1: userId }, { Friend2: userId }],
-      },
-      "Friend1 Friend2"
-    );
+      //Get all the conversations which user is a part of ie all the friends of users
+      const conversations = await conversationModel.find(
+        {
+          $or: [{ Friend1: userId }, { Friend2: userId }],
+        },
+        "Friend1 Friend2"
+      );
 
-    //Add the friends inside redis list
-    for (let index = 0; index < conversations.length; index++) {
-      const Friend1Email = (
-        await userModel.findOne({ _id: conversations[index].Friend1 })
-      ).email;
+      //Add the friends inside redis list
+      for (let index = 0; index < conversations.length; index++) {
+        const Friend1Email = (
+          await userModel.findOne({ _id: conversations[index].Friend1 })
+        ).email;
 
-      const Friend2Email = (
-        await userModel.findOne({ _id: conversations[index].Friend2 })
-      ).email;
+        const Friend2Email = (
+          await userModel.findOne({ _id: conversations[index].Friend2 })
+        ).email;
 
-      await sub.rpush(`friends:${email}`, `${Friend1Email}_${Friend2Email}`);
-    }
-  };
+        await sub.rpush(`friends:${email}`, `${Friend1Email}_${Friend2Email}`);
+      }
+  }
 }
 
 module.exports = { SocketLogic, pub, sub };

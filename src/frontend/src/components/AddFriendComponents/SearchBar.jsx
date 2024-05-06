@@ -14,6 +14,8 @@ import { ListItemButton } from '@mui/material';
 import {addFriendBothWays} from '../../utils/AddFriendBothWays'
 import { useNavigate } from 'react-router-dom';
 import { getToken } from '../../utils/Auth';
+import { useAddFriend } from '../../context/AddFriendContext';
+
 
 const Search = styled('div')(({ theme }) => ({
     position: 'relative',
@@ -64,6 +66,7 @@ const PrimarySearchAppBar = () => {
     //All the emails that will be rendered when searched for
     const [filteredResults,setFilteredResults] = useState([])
     const [searchTerm, setSearchTerm] = useState("");
+    const {open,setOpen} = useAddFriend()
     const navigate = useNavigate()
 
     //This is to get All the emails from the database
@@ -152,10 +155,11 @@ const PrimarySearchAppBar = () => {
     const addedFriend = async (friendEmail) =>{
         try {
             const isAdded = await addFriendBothWays(friendEmail)
+            //Close the dialog after adding friend
+            setOpen(false)
             console.log(isAdded.message)
-            if(isAdded.success){
-                return navigate("/main")
-            }
+            window.location.reload()
+
         } catch (error) {
             console.log(error)
             return {message:"The friend could not be added",success:false}

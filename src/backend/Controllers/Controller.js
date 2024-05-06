@@ -3,7 +3,7 @@ const conversationModel = require("../Models/Conversation");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const mongoose = require("mongoose");
-const { pub } = require("../../socket/SocketLogic");
+const { pub,SocketLogic } = require("../../socket/SocketLogic");
 
 const login = async (req, res) => {
   try {
@@ -311,6 +311,45 @@ const addFriendBothWays = async (req, res) => {
         Friend1: User2._id,
         Friend2: User1._id,
       });
+    }
+
+    // 
+    //     //Duplicate code
+    //
+
+    //Remove the friends key of user from redis
+    await pub.del(`friends:${decodedToken.email}`);
+
+    //Update the Redis after adding friends
+    //Get the id of user
+    const userId = User1._id
+
+    if (!userId) {
+      return res.json({
+        message: "Could not get user id from the database",
+        success: false,
+      });
+    }
+
+    //Get all the conversations which user is a part of ie all the friends of users
+    const conversations = await conversationModel.find(
+      {
+        $or: [{ Friend1: userId }, { Friend2: userId }],
+      },
+      "Friend1 Friend2"
+    );
+
+    //Add the friends inside redis list
+    for (let index = 0; index < conversations.length; index++) {
+      const Friend1Email = (
+        await userModel.findOne({ _id: conversations[index].Friend1 })
+      ).email;
+
+      const Friend2Email = (
+        await userModel.findOne({ _id: conversations[index].Friend2 })
+      ).email;
+
+      await pub.rpush(`friends:${decodedToken.email}`, `${Friend1Email}_${Friend2Email}`);
     }
 
     await session.commitTransaction();

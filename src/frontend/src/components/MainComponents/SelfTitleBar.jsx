@@ -3,15 +3,20 @@ import AppBar from "@mui/material/AppBar";
 import Box from "@mui/material/Box";
 import Toolbar from "@mui/material/Toolbar";
 import IconButton from "@mui/material/IconButton";
+import CloseIcon from "@mui/icons-material/Close";
 import AccountCircle from "@mui/icons-material/AccountCircle";
 import MenuItem from "@mui/material/MenuItem";
 import Menu from "@mui/material/Menu";
 import { useNavigate } from "react-router-dom";
 import { getToken, logoutUsingCookies } from "../../utils/Auth";
 import { getSocket } from "../../context/SocketContext";
+import PrimarySearchAppBar from "../AddFriendComponents/SearchBar";
+import Dialog from "@mui/material/Dialog";
+import { useAddFriend } from "../../context/AddFriendContext";
 
 export default function MenuAppBar(props) {
   const [anchorEl, setAnchorEl] = React.useState(null);
+  const { open, setOpen } = useAddFriend();
   const navigate = useNavigate();
   const socket = getSocket();
 
@@ -23,8 +28,12 @@ export default function MenuAppBar(props) {
     setAnchorEl(null);
   };
 
-  const addFriend = () => {
-    navigate("/addFriend");
+  const handleOpenDialog = () => {
+    setOpen(true);
+  };
+
+  const handleCloseDialog = () => {
+    setOpen(false);
   };
 
   const userLogout = async () => {
@@ -39,10 +48,9 @@ export default function MenuAppBar(props) {
       //Emit an socket event
       socket.emit("event:logout", { token: token });
 
-      logoutUsingCookies()
+      logoutUsingCookies();
 
       navigate("/", { replace: true });
-      
     } catch (error) {
       console.log(error);
       console.log("Error while logging out");
@@ -81,10 +89,20 @@ export default function MenuAppBar(props) {
             open={Boolean(anchorEl)}
             onClose={handleClose}
           >
-            {/* <MenuItem onClick={handleClose}>Logout</MenuItem> */}
             <MenuItem onClick={userLogout}>Logout</MenuItem>
-            <MenuItem onClick={addFriend}>Add Friend</MenuItem>
+            <MenuItem onClick={handleOpenDialog}>Add Friend</MenuItem>
           </Menu>
+          <Dialog open={open} onClose={handleCloseDialog}>
+            <IconButton
+              edge="start"
+              color="inherit"
+              onClick={handleCloseDialog}
+              aria-label="close"
+            >
+              <CloseIcon />
+            </IconButton>
+            <PrimarySearchAppBar />
+          </Dialog>
         </Toolbar>
       </AppBar>
     </Box>

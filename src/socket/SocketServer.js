@@ -2,7 +2,7 @@ require("dotenv").config();
 const PORT = process.env.SOCKET_PORT;
 const { SocketLogic } = require("./SocketLogic")
 const http = require("http");
-const { startConsumingMessages, produceMessage } = require("./KafkaLogic")
+const { startConsumingMessages } = require("./KafkaLogic")
 
 async function init() {
   try {
@@ -21,7 +21,7 @@ async function init() {
 
     socketLogic.initListeners();
 
-    // await startConsumingMessages()
+    await startConsumingMessages()
 
   } catch (error) {
     console.log(error)
